@@ -3,35 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lesson Planner - Version 2 PDF Fix</title>
+<title>Lesson Planner - Version 2 Beautiful</title>
 <style>
-body { font-family: Arial,sans-serif; background:#f9fafb; margin:0; padding:20px; color:#374151; }
-.container { max-width:1000px; margin:auto; background:white; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f3f4f6; margin:0; padding:20px; color:#1f2937; }
+.container { max-width:1100px; margin:auto; background:white; padding:20px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1);}
 h1,h2,h3,h4{margin-top:0;}
-.card { border-radius:8px; padding:12px; margin:8px 0; cursor:pointer; transition:transform 0.2s; background:white; border-left:6px solid #4f46e5; }
-.card:hover { transform: scale(1.02); box-shadow:0 2px 8px rgba(0,0,0,0.15); }
-textarea { width:100%; min-height:60px; border-radius:6px; border:1px solid #ccc; padding:6px; margin:4px 0; }
-input[type=text] { border-radius:6px; border:1px solid #ccc; padding:4px; width:100%; }
-.button { background:#4f46e5; color:white; padding:10px 16px; border:none; border-radius:8px; cursor:pointer; margin:4px 0; }
+.card { border-radius:10px; padding:16px; margin:12px 0; cursor:pointer; transition:transform 0.2s, box-shadow 0.2s; background:#ffffff; border-left:8px solid #4f46e5; box-shadow:0 1px 4px rgba(0,0,0,0.08);}
+.card:hover { transform: scale(1.03); box-shadow:0 4px 12px rgba(0,0,0,0.15); }
+textarea { width:100%; min-height:70px; border-radius:8px; border:1px solid #d1d5db; padding:8px; margin:6px 0; resize:vertical; font-family:inherit; }
+input[type=text] { border-radius:6px; border:1px solid #d1d5db; padding:6px; width:100%; font-family:inherit; }
+.button { background:#4f46e5; color:white; padding:10px 18px; border:none; border-radius:10px; cursor:pointer; margin:6px 0; font-size:14px; }
 .button:hover { background:#4338ca; }
-.lesson-event { border:1px solid #ddd; padding:10px; margin:8px 0; border-radius:6px; background:#f3f4f6; display:flex; gap:8px; align-items:flex-start; }
-.event-controls { display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; align-items:flex-start; }
-.suggestions { background:#e0e7ff; padding:6px 10px; border-left:4px solid #4f46e5; border-radius:4px; margin-top:4px; }
-.suggestions li { cursor:pointer; color:#4f46e5; margin-bottom:2px; }
-.suggestions li:hover { text-decoration:underline; }
-.drag-handle { cursor:grab; font-size:18px; margin-right:8px; user-select:none; }
-#return-btn { margin-bottom:12px; }
+.lesson-event { border:1px solid #e5e7eb; padding:12px; margin:10px 0; border-radius:10px; background:#f9fafb; display:flex; gap:12px; align-items:flex-start; }
+.event-controls { display:flex; flex-wrap:wrap; gap:10px; margin-top:6px; align-items:flex-start; }
+.suggestions { background:#eef2ff; padding:8px 12px; border-left:5px solid #4f46e5; border-radius:6px; margin-top:6px; }
+.suggestions li { cursor:pointer; color:#4f46e5; margin-bottom:3px; display:inline-block; padding:4px 8px; border-radius:6px; background:#e0e7ff; }
+.suggestions li:hover { background:#c7d2fe; text-decoration:none; }
+.drag-handle { cursor:grab; font-size:20px; margin-right:10px; user-select:none; }
+#return-btn { margin-bottom:16px; }
+.media-label { display:flex; align-items:center; gap:4px; background:#f3f4f6; padding:4px 8px; border-radius:6px; font-size:13px; }
+@media (max-width:600px){ .event-controls{flex-direction:column;} }
 </style>
 </head>
 <body>
 <div class="container">
-<h1>📚 Lesson Planner - Version 2 PDF Fix</h1>
+<h1>📚 Lesson Planner - Version 2 Beautiful</h1>
 <button id="surprise-btn" class="button">🎲 Surprise Me!</button>
 <button id="return-btn" class="button" style="display:none;">🏠 Return to Main Page</button>
 <div id="topic-selector"></div>
 <div id="lesson-planner" style="display:none;"></div>
 
-<!-- JS Libraries -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -52,14 +53,10 @@ let selectedTopic=null;
 
 // Render topics
 function renderTopics(){
-  const container=document.getElementById("topic-selector");
-  container.innerHTML="";
-  container.style.display="block";
-  document.getElementById("lesson-planner").style.display="none";
-  document.getElementById("return-btn").style.display="none";
+  const container=document.getElementById("topic-selector"); container.innerHTML=""; container.style.display="block";
+  document.getElementById("lesson-planner").style.display="none"; document.getElementById("return-btn").style.display="none";
   topics.forEach(topic=>{
-    const div=document.createElement("div");
-    div.className="card";
+    const div=document.createElement("div"); div.className="card";
     div.innerHTML=`<h3>${topic.name}</h3><p>${topic.subject}</p><p><strong>Objective:</strong> ${topic.objectives[0]}</p>`;
     div.addEventListener("click",()=>{ selectedTopic=topic; showPlanner(); });
     container.appendChild(div);
@@ -69,8 +66,7 @@ renderTopics();
 
 // Surprise Me
 document.getElementById("surprise-btn").addEventListener("click",()=>{
-  selectedTopic=topics[Math.floor(Math.random()*topics.length)];
-  showPlanner();
+  selectedTopic=topics[Math.floor(Math.random()*topics.length)]; showPlanner();
 });
 
 // Return to main page
@@ -78,18 +74,14 @@ document.getElementById("return-btn").addEventListener("click",()=>{ renderTopic
 
 // Show planner
 function showPlanner(){
-  const container=document.getElementById("lesson-planner");
-  container.innerHTML="";
-  container.style.display="block";
-  document.getElementById("topic-selector").style.display="none";
-  document.getElementById("return-btn").style.display="inline-block";
+  const container=document.getElementById("lesson-planner"); container.innerHTML=""; container.style.display="block";
+  document.getElementById("topic-selector").style.display="none"; document.getElementById("return-btn").style.display="inline-block";
 
   container.innerHTML=`<h2>Lesson Planner: ${selectedTopic.name}</h2>`;
-  const objDiv=document.createElement("div");
-  objDiv.style.background="#eef2ff"; objDiv.style.padding="10px"; objDiv.style.borderRadius="6px"; objDiv.style.marginBottom="12px";
+  const objDiv=document.createElement("div"); objDiv.style.background="#eef2ff"; objDiv.style.padding="12px"; objDiv.style.borderRadius="8px"; objDiv.style.marginBottom="16px";
   if(selectedTopic.name==="Do-It-Yourself"){
-    objDiv.innerHTML=`<p><strong>Objectives:</strong> <input type="text" id="custom_objectives" value="${selectedTopic.objectives[0]}" style="width:100%"></p>
-                        <p><strong>Key Content:</strong> <input type="text" id="custom_content" value="${selectedTopic.content.customContent[0]}" style="width:100%"></p>`;
+    objDiv.innerHTML=`<p><strong>Objectives:</strong> <input type="text" id="custom_objectives" value="${selectedTopic.objectives[0]}"></p>
+                        <p><strong>Key Content:</strong> <input type="text" id="custom_content" value="${selectedTopic.content.customContent[0]}"></p>`;
   } else {
     objDiv.innerHTML=`<p><strong>Objectives:</strong> ${selectedTopic.objectives.map(o=>"• "+o).join("<br>")}</p>
                       <p><strong>Key Content:</strong> ${(selectedTopic.content.stages||selectedTopic.content.parts||selectedTopic.content.foodGroups).map(o=>"• "+o).join("<br>")}</p>`;
@@ -97,8 +89,7 @@ function showPlanner(){
   container.appendChild(objDiv);
 
   const mediaOptions=["Video","Pictures","Charts","Physical Objects","Interactive Whiteboard","Worksheets","Songs/Audio","Role Play/Drama"];
-  const eventsContainer=document.createElement("div"); eventsContainer.id="events-container";
-  container.appendChild(eventsContainer);
+  const eventsContainer=document.createElement("div"); eventsContainer.id="events-container"; container.appendChild(eventsContainer);
 
   nineEvents.forEach(event=>{
     const div=document.createElement("div"); div.className="lesson-event"; div.dataset.id=event.id; div.dataset.title=event.title;
@@ -106,15 +97,14 @@ function showPlanner(){
     div.innerHTML=`<span class="drag-handle">☰</span><div style="flex:1">
       <h4>${event.id}. ${event.title}</h4>
       <div class="event-controls">
-        ${mediaOptions.map((m,i)=>`<label><input type="checkbox" data-index="${i}"> ${m}</label>`).join('')}
-        <label>Other: <input type="text" class="other-text" placeholder="Your idea"></label>
+        ${mediaOptions.map((m,i)=>`<label class="media-label"><input type="checkbox" data-index="${i}"> ${m}</label>`).join('')}
+        <label class="media-label">Other: <input type="text" class="other-text" placeholder="Your idea"></label>
       </div>
-      <div class="suggestions"><strong>Suggestions:</strong><ul>${suggestions.map(s=>`<li>${s}</li>`).join('')}</ul></div>
+      <div class="suggestions"><ul>${suggestions.map(s=>`<li>${s}</li>`).join('')}</ul></div>
       <textarea placeholder="How will you implement this?"></textarea>
     </div>`;
     eventsContainer.appendChild(div);
 
-    // Load autosave
     const textarea=div.querySelector("textarea"); const checkboxes=div.querySelectorAll('input[type=checkbox]');
     const otherInput=div.querySelector(".other-text");
     textarea.value=localStorage.getItem(`lesson_${selectedTopic.name}_${event.id}`)||"";
@@ -124,16 +114,13 @@ function showPlanner(){
     // Autosave
     textarea.addEventListener("input",()=>{localStorage.setItem(`lesson_${selectedTopic.name}_${event.id}`,textarea.value);});
     checkboxes.forEach((cb,i)=>cb.addEventListener("change",saveMedia)); otherInput.addEventListener("input",saveMedia);
-    function saveMedia(){ let selected=Array.from(checkboxes).map((cb,i)=>cb.checked?i:null).filter(x=>x!==null);
-      if(otherInput.value.trim()!=="") selected.push(otherInput.value.trim());
-      localStorage.setItem(`lesson_${selectedTopic.name}_media_${event.id}`,JSON.stringify(selected));
-    }
+    function saveMedia(){ let selected=Array.from(checkboxes).map((cb,i)=>cb.checked?i:null).filter(x=>x!==null); if(otherInput.value.trim()!=="") selected.push(otherInput.value.trim()); localStorage.setItem(`lesson_${selectedTopic.name}_media_${event.id}`,JSON.stringify(selected)); }
 
-    // Suggestion click
+    // Suggestions click
     div.querySelectorAll(".suggestions li").forEach(li=>li.addEventListener("click",()=>{textarea.value=li.textContent; localStorage.setItem(`lesson_${selectedTopic.name}_${event.id}`,textarea.value);}));
   });
 
-  // Make sortable
+  // Sortable
   new Sortable(eventsContainer,{handle:".drag-handle",animation:150});
 
   // Export PDF
@@ -141,8 +128,6 @@ function showPlanner(){
   exportBtn.addEventListener("click",()=>{
     const { jsPDF }=window.jspdf; const doc=new jsPDF(); doc.setFontSize(16); doc.text(`Lesson Planner: ${selectedTopic.name}`,10,10);
     let startY=20; doc.setFontSize(12);
-
-    // Add objectives and key content
     if(selectedTopic.name==="Do-It-Yourself"){
       const customObj=document.getElementById('custom_objectives').value; const customCon=document.getElementById('custom_content').value;
       doc.text("Objectives:",10,startY); startY+=6; doc.text(customObj,12,startY); startY+=6;
@@ -152,7 +137,6 @@ function showPlanner(){
       doc.text("Key Content:",10,startY); startY+=6; (selectedTopic.content.stages||selectedTopic.content.parts||selectedTopic.content.foodGroups).forEach(o=>{doc.text("• "+o,12,startY); startY+=6;});
     }
 
-    // Prepare table
     const rows=Array.from(eventsContainer.children).map(div=>{
       const eventId=div.dataset.id; const title=div.dataset.title;
       const mediaSaved=JSON.parse(localStorage.getItem(`lesson_${selectedTopic.name}_media_${eventId}`)||"[]");
