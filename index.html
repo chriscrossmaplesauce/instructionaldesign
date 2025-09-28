@@ -1,14 +1,71 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>My GitHub Pages Site</title>
-  </head>
-  <body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My GitHub Pages Site</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: white;
+      padding: 2rem 3rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 1rem;
+      color: #333;
+    }
+
+    p {
+      color: #555;
+      margin-bottom: 1.5rem;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      margin: 0.75rem 0;
+    }
+
+    a {
+      display: inline-block;
+      text-decoration: none;
+      background: #007BFF;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      transition: background 0.3s ease;
+    }
+
+    a:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
     <h1>Welcome to My Site</h1>
     <p>Select a page:</p>
     <ul>
-      <li><a href="lessonplanner.html">Lesson Planner</a></li>
-      <li><a href="page2.html">Page 2</a></li>
+      <li><a href="lessonplanner.html">📘 Lesson Planner</a></li>
+      <li><a href="ICMSorter.html">📄 ICM Sorter</a></li>
+      <li><a href="subfolder/page3.html">📂 Page 3 (in subfolder)</a></li>
     </ul>
-  </body>
+  </div>
+</body>
 </html>
