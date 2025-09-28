@@ -1,14 +1,9 @@
-Final
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lesson Planner - Gagné's Nine Events</title>
+<title>Lesson Planner - Gagné's Nine Events (Version 2.4)</title>
 <style>
 body { font-family: Arial, sans-serif; background: #f9fafb; margin: 0; padding: 20px; color: #374151; }
 .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
@@ -16,266 +11,215 @@ h1,h2,h3,h4{margin-top:0;}
 .card { border: 2px solid #ddd; border-radius: 8px; padding: 12px; margin: 8px 0; cursor: pointer; transition: transform 0.2s; }
 .card:hover { transform: scale(1.02); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
 textarea { width: 100%; min-height: 60px; border-radius: 6px; border: 1px solid #ccc; padding: 6px; margin: 4px 0; }
-input[type=text] { border-radius: 6px; border: 1px solid #ccc; padding: 4px; margin-left: 4px; width: 150px; }
-select { padding: 6px; border-radius: 6px; margin: 0 6px 12px 0; }
+input[type=text], input[type=file] { border-radius: 6px; border: 1px solid #ccc; padding: 4px; margin-left: 4px; width: 150px; }
 .button { background: #4f46e5; color: white; padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; margin: 4px 0; }
 .button:hover { background: #4338ca; }
-.lesson-event { border: 1px solid #ddd; padding: 10px; margin: 8px 0; border-radius: 6px; background: #f3f4f6; }
+.lesson-event { border: 1px solid #ddd; padding: 10px; margin: 8px 0; border-radius: 6px; background: #f3f4f6; display: flex; align-items: flex-start; gap: 8px; }
 .event-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top:4px; align-items:flex-start; }
-#filters { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
 .hidden { display: none; }
 .suggestions ul { padding-left: 20px; margin: 4px 0; }
 .suggestions li { cursor: pointer; color: #4f46e5; margin-bottom: 2px; }
 .suggestions li:hover { text-decoration: underline; }
-@media (max-width:600px){ #filters{flex-direction:column;} }
-.objectives, .content { margin-bottom:12px; padding:10px; border-radius:6px; }
-.objectives { background:#eef2ff; }
-.content { background:#f0fdf4; }
+.drag-handle { cursor: grab; font-size: 18px; color: #6b7280; user-select: none; }
+.lesson-event.dragging { opacity: 0.6; }
+.objectives-content { background: #eef2ff; padding: 12px; border-radius: 6px; margin-bottom: 12px; }
+img.preview { max-width:50px; max-height:50px; margin-left:4px; border:1px solid #ccc; border-radius:4px; }
+@media (max-width:600px){ .event-controls{flex-direction:column;} }
 </style>
 </head>
 <body>
 <div class="container">
-<h1>📚 Lesson Planner - Gagné's Nine Events</h1>
-<div id="filters"></div>
+<h1>📚 Lesson Planner - Gagné's Nine Events (Version 2.4)</h1>
 <button id="surprise-btn" class="button">🎲 Surprise Me!</button>
+<button id="return-btn" class="button hidden">🏠 Return to Main Page</button>
 <div id="topic-selector"></div>
 <div id="lesson-planner" class="hidden"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+
 <script>
 // --------------------- Topics ---------------------
 const topics = [
-  { 
-    name: "Life Cycles of Butterflies", 
-    subject: "Science", 
-    color: "#3B82F6", 
-    objectives: [
-      "Identify and describe all four stages of a butterfly life cycle",
-      "Sequence the stages in correct order: egg, caterpillar, pupa, adult butterfly",
-      "Understand key terms: egg, caterpillar, pupa, chrysalis, butterfly, metamorphosis"
-    ], 
-    content: [
-      "Egg: Laid on leaves",
-      "Caterpillar / Larva: Hatches from egg, eats leaves, grows",
-      "Pupa / Chrysalis: Protective casing, undergoes metamorphosis",
-      "Adult Butterfly: Emerges with wings, ready to fly",
-      "Explain the concept of metamorphosis and physical changes at each stage"
-    ],
-    suggestions: {
-      1: ["Show a time-lapse video", "Ask students what they noticed about butterflies", "Start with a story about a caterpillar"],
-      2: ["Display objectives on the board", "Have students repeat objectives aloud", "Discuss why learning the life cycle is important"],
-      3: ["Recall other insects they know", "Discuss caterpillar stages", "Use a short quiz on insects"],
-      4: ["Present images of each stage", "Explain key terms like chrysalis", "Use flashcards for stages"],
-      5: ["Demonstrate with model/toy", "Sequence stages with cards", "Use interactive board activity"],
-      6: ["Draw the life cycle", "Label each stage", "Peer review drawings"],
-      7: ["Provide immediate feedback", "Correct misconceptions", "Short group discussion"],
-      8: ["Quiz students", "Explain process to partner", "Use quiz apps like Kahoot"],
-      9: ["Worksheet for home review", "Observe caterpillars outside", "Mini project on butterflies"]
-    }
-  },
-  { 
-    name: "Plant Parts", 
-    subject: "Science", 
-    color: "#84CC16", 
-    objectives: [
-      "Name the main parts of a plant: roots, stem, leaves, flowers",
-      "Explain the function/job of each part",
-      "Identify plant parts on real plants or images"
-    ],
-    content: [
-      "Roots: Absorb water and nutrients from soil",
-      "Stem: Supports plant and transports nutrients",
-      "Leaves: Make food via photosynthesis",
-      "Flowers: Produce seeds for reproduction",
-      "Explain how all parts work together for plant survival"
-    ],
-    suggestions: {
-      1: ["Show a short plant-growing video", "Ask students what plants need", "Use real plants to show parts"],
-      2: ["Display lesson objectives", "Read them aloud", "Discuss importance of plant parts"],
-      3: ["Recall parts students know", "Discuss favorite plants", "Draw a plant on the board together"],
-      4: ["Show labeled images", "Explain each part", "Interactive labeling game"],
-      5: ["Show real plant parts", "Guide students to touch/observe", "Hands-on activity with soil/seeds"],
-      6: ["Label parts on worksheet", "Draw/color a plant", "Peer check work"],
-      7: ["Feedback on labeling", "Correct misconceptions", "Quick Q&A"],
-      8: ["Ask questions: What makes food? What absorbs water?", "Mini quiz", "Group presentation"],
-      9: ["Observe plant at home", "Note changes", "Reflection writing"]
-    }
-  },
-  { 
-    name: "Healthy Foods", 
-    subject: "Health", 
-    color: "#16A34A", 
-    objectives: [
-      "Sort foods into healthy and less healthy categories",
-      "Identify foods from different food groups",
-      "Explain why healthy foods help our bodies grow strong"
-    ],
-    content: [
-      "Food Groups: Fruits, Vegetables, Proteins, Grains, Dairy",
-      "Provide examples and benefits of each group",
-      "Explain nutrients provided by each group and their importance",
-      "Highlight balanced diet and healthy eating habits"
-    ],
-    suggestions: {
-      1: ["Show pictures of healthy/unhealthy foods", "Ask what students ate for breakfast", "Discuss favorite foods"],
-      2: ["Display objectives", "Read them aloud", "Explain balanced diet importance"],
-      3: ["Recall favorite foods", "Discuss which are healthy", "Use flashcards for food groups"],
-      4: ["Present 5 food groups with examples", "Explain importance", "Interactive sorting activity"],
-      5: ["Demonstrate sorting foods", "Guide students to make charts", "Peer check charts"],
-      6: ["Classify pictures", "Create healthy meal plan", "Group discussion on choices"],
-      7: ["Feedback on sorting", "Correct misconceptions", "Quick quiz on groups"],
-      8: ["Quiz students", "Explain why foods help bodies", "Class presentation of meal plan"],
-      9: ["Send home food diary", "Track healthy foods for a week", "Reflection journaling"]
-    }
-  }
+  { name:"Life Cycles of Butterflies", subject:"Science", objectives:["Identify four stages of a butterfly life cycle","Sequence egg, caterpillar, chrysalis, butterfly","Describe what happens at each stage"], content:{stages:["Egg: laid on leaves","Caterpillar: eats & grows","Chrysalis: protective casing","Butterfly: adult emerges"]}, suggestions:{1:["Show time-lapse","Ask if seen butterflies","Play butterfly music"],2:["Display objectives","Repeat aloud","Explain goal"],3:["Recall other insects","Discuss caterpillar stages","Show short insect video"],4:["Present images","Explain terms","Show diagram"],5:["Use model","Sequence cards","Draw together"],6:["Draw life cycle","Label stages","Matching activity"],7:["Feedback","Correct misconceptions","Praise effort"],8:["Quiz","Explain to partner","Oral recap"],9:["Worksheet","Outdoor observation","Keep journal"]}},
+  { name:"Plant Parts", subject:"Science", objectives:["Name roots, stem, leaves, flowers","Explain job of each part","Identify on real plants/pictures"], content:{parts:["Roots absorb water","Stem supports & transports","Leaves make food","Flowers produce seeds"]}, suggestions:{1:["Show plant video","Ask what plants need","Bring plant"],2:["Display objectives","Read aloud","Explain usefulness"],3:["Ask known parts","Discuss favorites","Show leaves"],4:["Show diagrams","Explain functions","Cross-section"],5:["Show real parts","Guide touching","Use magnifying glass"],6:["Label worksheet","Draw & color","Assemble cut-out"],7:["Feedback","Correct mistakes","Praise"],8:["Quick questions","Short quiz","Match parts"],9:["Observe at home","Record changes","Start journal"]}},
+  { name:"Healthy Foods", subject:"Health", objectives:["Sort foods healthy/less healthy","Identify food groups","Explain why healthy foods help growth"], content:{foodGroups:["Fruits: vitamins","Vegetables: growth","Proteins: muscles","Grains: energy","Dairy: bones & teeth"]}, suggestions:{1:["Show pictures","Ask what they ate","Play song"],2:["Display objectives","Read aloud","Explain importance"],3:["Ask favorite foods","Discuss healthy","Recall last meal"],4:["Present groups","Explain role","Use pyramid"],5:["Sort pictures","Make posters","Guide grouping"],6:["Classify cards","Create meal plans","Plate sorting"],7:["Feedback","Correct mistakes","Praise"],8:["Quiz","Explain why healthy","Matching game"],9:["Food diary","Track weekly","Family challenge"]}},
+  { name:"Do-It-Yourself", subject:"Custom", objectives:["Enter your lesson objectives here..."], content:{customContent:["Enter key content here..."]}, suggestions:{1:["Add creative element","Group work","Link real-life"],2:["Add creative element","Group work","Link real-life"],3:["Add creative element","Group work","Link real-life"],4:["Add creative element","Group work","Link real-life"],5:["Add creative element","Group work","Link real-life"],6:["Add creative element","Group work","Link real-life"],7:["Add creative element","Group work","Link real-life"],8:["Add creative element","Group work","Link real-life"],9:["Add creative element","Group work","Link real-life"]}}
 ];
 
-// --------------------- Gagné Events ---------------------
-const nineEvents = [
-  { id:1, title:"Gaining Attention" },
-  { id:2, title:"Informing Learners of Objectives" },
-  { id:3, title:"Stimulating Recall" },
-  { id:4, title:"Presenting Content" },
-  { id:5, title:"Providing Learning Guidance" },
-  { id:6, title:"Eliciting Performance" },
-  { id:7, title:"Providing Feedback" },
-  { id:8, title:"Assessing Performance" },
-  { id:9, title:"Enhancing Retention" }
-];
+const nineEvents=[{id:1,title:"Gaining Attention"},{id:2,title:"Informing Learners of Objectives"},{id:3,title:"Stimulating Recall"},{id:4,title:"Presenting Content"},{id:5,title:"Providing Learning Guidance"},{id:6,title:"Eliciting Performance"},{id:7,title:"Providing Feedback"},{id:8,title:"Assessing Performance"},{id:9,title:"Enhancing Retention"}];
 
-let selectedTopic = null;
-
-// --------------------- Subject Filter ---------------------
-const filterDiv = document.getElementById("filters");
-const subjects = [...new Set(topics.map(t=>t.subject))];
-const subjectSelect = document.createElement("select");
-subjectSelect.innerHTML = `<option value="all">All Subjects</option>` + subjects.map(s=>`<option value="${s}">${s}</option>`).join('');
-filterDiv.appendChild(subjectSelect);
-subjectSelect.addEventListener("change", renderTopics);
+let selectedTopic=null;
 
 // --------------------- Render Topics ---------------------
-function renderTopics() {
-  const container = document.getElementById("topic-selector");
+function renderTopics(){
+  const container=document.getElementById("topic-selector");
   container.classList.remove("hidden");
   document.getElementById("lesson-planner").classList.add("hidden");
-  container.innerHTML = "";
-  const subject = subjectSelect.value;
-  const filtered = topics.filter(t=>subject==="all"||t.subject===subject);
-  filtered.forEach(topic=>{
-    const div = document.createElement("div");
-    div.className = "card";
-    div.style.borderColor = topic.color;
-    div.innerHTML = `<h3>${topic.name}</h3><p>${topic.subject}</p><p><strong>Objective:</strong> ${topic.objectives[0]}</p>`;
+  document.getElementById("return-btn").classList.add("hidden");
+  container.innerHTML="";
+  topics.forEach(topic=>{
+    const div=document.createElement("div");
+    div.className="card";
+    div.innerHTML=`<h3>${topic.name}</h3><p>${topic.subject}</p><p><strong>Objective:</strong> ${topic.objectives[0]}</p>`;
     div.addEventListener("click",()=>{selectedTopic=topic; showPlanner();});
     container.appendChild(div);
   });
 }
 renderTopics();
 
-// --------------------- Surprise Me ---------------------
-document.getElementById("surprise-btn").addEventListener("click",()=>{
-  selectedTopic = topics[Math.floor(Math.random()*topics.length)];
-  showPlanner();
-});
+// --------------------- Buttons ---------------------
+document.getElementById("surprise-btn").addEventListener("click",()=>{selectedTopic=topics[Math.floor(Math.random()*topics.length)]; showPlanner();});
+document.getElementById("return-btn").addEventListener("click",()=>{ renderTopics(); });
 
 // --------------------- Show Planner ---------------------
-function showPlanner() {
+function showPlanner(){
+  const container=document.getElementById("lesson-planner");
   document.getElementById("topic-selector").classList.add("hidden");
-  const container = document.getElementById("lesson-planner");
   container.classList.remove("hidden");
-  container.innerHTML = `<h2>Lesson Planner: ${selectedTopic.name}</h2>`;
+  document.getElementById("return-btn").classList.remove("hidden");
+  container.innerHTML=`<h2>Lesson Planner: ${selectedTopic.name}</h2>`;
 
-  // Objectives
-  container.innerHTML += `<div class="objectives">
-    <h3>Lesson Objectives:</h3>
-    <ul>${selectedTopic.objectives.map(o=>`<li>${o}</li>`).join('')}</ul>
-  </div>`;
+  // Objectives & Content
+  const objDiv=document.createElement("div"); objDiv.className="objectives-content";
+  if(selectedTopic.name==="Do-It-Yourself"){
+    objDiv.innerHTML=`<p><strong>Objectives:</strong> <input type="text" id="custom_objectives" value="${localStorage.getItem('custom_objectives')||selectedTopic.objectives[0]}" style="width:100%"></p>
+                      <p><strong>Key Content:</strong> <input type="text" id="custom_content" value="${localStorage.getItem('custom_content')||selectedTopic.content.customContent[0]}" style="width:100%"></p>`;
+  } else {
+    objDiv.innerHTML=`<p><strong>Objectives:</strong> ${selectedTopic.objectives.map(o=>"• "+o).join("<br>")}</p>
+                      <p><strong>Key Content:</strong> ${(selectedTopic.content.stages||selectedTopic.content.parts||selectedTopic.content.foodGroups).map(o=>"• "+o).join("<br>")}</p>`;
+  }
+  container.appendChild(objDiv);
 
-  // Key content
-  container.innerHTML += `<div class="content">
-    <h3>Key Content / Information to Teach:</h3>
-    <ul>${selectedTopic.content.map(c=>`<li>${c}</li>`).join('')}</ul>
-  </div>`;
+  // Media options
+  const mediaOptions=["Video","Pictures","Charts","Physical Objects","Interactive Whiteboard","Worksheets","Songs/Audio","Role Play/Drama"];
 
-  const mediaOptions = [
-    {label:"🎥 Video"}, {label:"🖼️ Pictures"}, {label:"📊 Charts"}, {label:"🧸 Physical Objects"}, 
-    {label:"📱 Interactive Whiteboard"}, {label:"📝 Worksheets"}, {label:"🎵 Songs/Audio"}, {label:"🎭 Role Play/Drama"}
-  ];
+  // Reset order
+  const resetBtn=document.createElement("button"); resetBtn.className="button"; resetBtn.textContent="🔄 Reset Order";
+  resetBtn.addEventListener("click",()=>{ showPlanner(); });
+  container.appendChild(resetBtn);
 
-  nineEvents.forEach(event => {
-    const div = document.createElement("div");
-    div.className = "lesson-event";
-    const suggestions = selectedTopic.suggestions[event.id] || [];
+  const eventsContainer=document.createElement("div"); eventsContainer.id="events-container"; container.appendChild(eventsContainer);
 
-    div.innerHTML = `
+  // Render events
+  nineEvents.forEach(event=>{
+    const div=document.createElement("div"); div.className="lesson-event"; div.dataset.title=event.title;
+    const suggestions=(selectedTopic.suggestions && selectedTopic.suggestions[event.id])||["Add activity 1","Add activity 2","Add activity 3"];
+    div.innerHTML=`<span class="drag-handle">☰</span>
+      <div style="flex:1">
       <h4>${event.id}. ${event.title}</h4>
       <div class="event-controls">
-        ${mediaOptions.map((m,i)=>`<label style="display:flex;align-items:center;gap:4px;"><input type="checkbox" data-index="${i}">${m.label}</label>`).join('')}
-        <label style="display:flex;align-items:center;gap:4px;"><input type="checkbox" class="other-checkbox">Other: <input type="text" class="other-text" placeholder="Your idea here"></label>
+        ${mediaOptions.map((m,i)=>`<label><input type="checkbox" data-index="${i}"> ${m}</label>`).join('')}
+        <label>Other: <input type="text" class="other-text" placeholder="Your idea here"></label>
+        <label>Image: <input type="file" class="image-upload" accept="image/*"></label>
+        <span class="image-previews"></span>
       </div>
-      <div class="suggestions"><strong>Suggestions:</strong>
-        <ul>${suggestions.map(s=>`<li>${s}</li>`).join('')}</ul>
-      </div>
-      <textarea placeholder="How will you implement this event?"></textarea>
-    `;
-    container.appendChild(div);
+      <div class="suggestions"><strong>Suggestions:</strong><ul>${suggestions.map(s=>`<li>${s}</li>`).join('')}</ul></div>
+      <textarea placeholder="How will you implement this?">${localStorage.getItem(`lesson_${selectedTopic.name}_${event.id}`)||""}</textarea>
+      <div><button class="button remove-event" style="margin-top:4px;">🗑️ Remove Event</button>
+      <button class="button duplicate-event" style="margin-top:4px;">📄 Duplicate Event</button></div>
+      </div>`;
 
-    const textarea = div.querySelector("textarea");
-    const checkboxes = div.querySelectorAll('input[type=checkbox]:not(.other-checkbox)');
-    const otherCheckbox = div.querySelector(".other-checkbox");
-    const otherText = div.querySelector(".other-text");
+    const textarea=div.querySelector("textarea"); textarea.addEventListener("input",()=>{localStorage.setItem(`lesson_${selectedTopic.name}_${event.id}`,textarea.value);});
 
-    // Auto-save
-    function saveContent() {
-      localStorage.setItem(`lesson_${selectedTopic.name}_${event.id}`, textarea.value);
-      const selectedMedia = Array.from(checkboxes).map((cb,i)=> cb.checked?i:null).filter(x=>x!==null);
-      if(otherCheckbox.checked && otherText.value.trim()!=="") selectedMedia.push(otherText.value.trim());
-      localStorage.setItem(`lesson_${selectedTopic.name}_media_${event.id}`, JSON.stringify(selectedMedia));
+    const otherInput=div.querySelector(".other-text"); const checkboxes=div.querySelectorAll('input[type=checkbox]:not(.image-upload)');
+    const imageInput=div.querySelector(".image-upload"); const previewsSpan=div.querySelector(".image-previews");
+
+    function updateMedia(){
+      let arr=Array.from(checkboxes).map(cb=>cb.checked?Number(cb.dataset.index):null).filter(x=>x!==null);
+      if(otherInput.value.trim()!=="") arr.push(otherInput.value.trim());
+      const imgs=Array.from(previewsSpan.querySelectorAll("img")).map(im=>im.src);
+      arr.push(...imgs);
+      div.dataset.media=JSON.stringify(arr);
+      localStorage.setItem(`lesson_${selectedTopic.name}_media_${event.id}`,JSON.stringify(arr));
     }
-    textarea.addEventListener("input", saveContent);
-    checkboxes.forEach(cb=>cb.addEventListener("change", saveContent));
-    otherCheckbox.addEventListener("change", saveContent);
-    otherText.addEventListener("input", saveContent);
 
-    // Load saved
-    textarea.value = localStorage.getItem(`lesson_${selectedTopic.name}_${event.id}`) || "";
-    const savedMedia = JSON.parse(localStorage.getItem(`lesson_${selectedTopic.name}_media_${event.id}`)) || [];
-    checkboxes.forEach((cb,i)=> cb.checked = savedMedia.includes(i));
-    if(savedMedia.some(m=>typeof m==="string")) { otherCheckbox.checked = true; otherText.value = savedMedia.find(m=>typeof m==="string"); }
+    checkboxes.forEach(cb=>cb.addEventListener("change",updateMedia));
+    otherInput.addEventListener("input",updateMedia);
 
-    // Click-to-insert suggestion
-    const suggestionItems = div.querySelectorAll(".suggestions li");
-    suggestionItems.forEach(li => {
-      li.addEventListener("click", () => { textarea.value = li.textContent; saveContent(); });
+    imageInput.addEventListener("change",(e)=>{
+      Array.from(e.target.files).forEach(file=>{
+        const reader=new FileReader();
+        reader.onload=function(ev){
+          const img=document.createElement("img"); img.src=ev.target.result; img.className="preview";
+          previewsSpan.appendChild(img);
+          updateMedia();
+        }
+        reader.readAsDataURL(file);
+      });
+      e.target.value="";
     });
+
+    div.querySelectorAll(".suggestions li").forEach(li=>{li.addEventListener("click",()=>{textarea.value=li.textContent; localStorage.setItem(`lesson_${selectedTopic.name}_${event.id}`,li.textContent);});});
+
+    // Remove & Duplicate events
+    div.querySelector(".remove-event").addEventListener("click",()=>{eventsContainer.removeChild(div);});
+    div.querySelector(".duplicate-event").addEventListener("click",()=>{
+      const clone=div.cloneNode(true); eventsContainer.appendChild(clone); initEventListeners(clone);
+    });
+
+    eventsContainer.appendChild(div);
+    updateMedia();
   });
 
-  // Export PDF
-  const exportBtn = document.createElement("button");
-  exportBtn.className = "button";
-  exportBtn.textContent = "🖨️ Export to PDF";
-  exportBtn.addEventListener("click", ()=>{
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text(`Lesson Planner: ${selectedTopic.name}`, 10, 10);
+  // Drag-and-drop
+  Sortable.create(eventsContainer,{handle:'.drag-handle',animation:150});
 
-    const rows = nineEvents.map(event=>{
-      const prescription = localStorage.getItem(`lesson_${selectedTopic.name}_${event.id}`) || "";
-      const mediaSaved = JSON.parse(localStorage.getItem(`lesson_${selectedTopic.name}_media_${event.id}`)) || [];
-      const mediaLabels = mediaSaved.map(m=>typeof m==="string"?m:mediaOptions[m].label.replace(/🎥|🖼️|📊|🧸|📱|📝|🎵|🎭/g,'')).join(", ");
-      return [event.title, mediaLabels, prescription];
+  function initEventListeners(div){
+    // Re-init listeners for duplicated events
+    const textarea=div.querySelector("textarea"); textarea.addEventListener("input",()=>{});
+    const otherInput=div.querySelector(".other-text"); const checkboxes=div.querySelectorAll('input[type=checkbox]:not(.image-upload)');
+    const imageInput=div.querySelector(".image-upload"); const previewsSpan=div.querySelector(".image-previews");
+    checkboxes.forEach(cb=>cb.addEventListener("change",()=>{})); otherInput.addEventListener("input",()=>{});
+    imageInput.addEventListener("change",(e)=>{});
+    div.querySelectorAll(".suggestions li").forEach(li=>{li.addEventListener("click",()=>{});});
+    div.querySelector(".remove-event").addEventListener("click",()=>{div.remove();});
+    div.querySelector(".duplicate-event").addEventListener("click",()=>{});
+  }
+
+  // Export PDF
+  const exportBtn=document.createElement("button"); exportBtn.className="button"; exportBtn.textContent="🖨️ Export to PDF";
+  exportBtn.addEventListener("click",()=>{
+    const { jsPDF }=window.jspdf; const doc=new jsPDF(); doc.setFontSize(16); doc.text(`Lesson Planner: ${selectedTopic.name}`,10,10);
+    let startY=20;
+    // Objectives
+    doc.setFontSize(12);
+    if(selectedTopic.name==="Do-It-Yourself"){
+      const customObj=document.getElementById('custom_objectives').value; const customCon=document.getElementById('custom_content').value;
+      localStorage.setItem('custom_objectives',customObj); localStorage.setItem('custom_content',customCon);
+      doc.text("Objectives:",10,startY); startY+=6; doc.text(customObj,12,startY); startY+=6;
+      doc.text("Key Content:",10,startY); startY+=6; doc.text(customCon,12,startY); startY+=6;
+    } else {
+      doc.text("Objectives:",10,startY); startY+=6; selectedTopic.objectives.forEach(o=>{doc.text("• "+o,12,startY); startY+=6;});
+      doc.text("Key Content:",10,startY); startY+=6; (selectedTopic.content.stages||selectedTopic.content.parts||selectedTopic.content.foodGroups).forEach(o=>{doc.text("• "+o,12,startY); startY+=6;});
+    }
+
+    const eventsContainer=document.getElementById("events-container");
+    const rows=Array.from(eventsContainer.children).map(div=>{
+      const title=div.dataset.title; const mediaSaved=JSON.parse(div.dataset.media||"[]");
+      const mediaLabels=mediaSaved.map(m=>typeof m==="string" && m.startsWith("data:image")?"[Image]":typeof m==="string"?m:m).join(", ");
+      const prescription=div.querySelector("textarea").value;
+      return [title,mediaLabels,prescription,mediaSaved];
     });
 
     doc.autoTable({
-      startY: 20,
-      head:[["Event","Media","Prescription"]],
-      body: rows,
+      startY:startY+4, head:[["Event","Media","Plan"]],
+      body:rows.map(r=>[r[0],r[1],r[2]]),
       styles:{fontSize:10,cellPadding:3},
       headStyles:{fillColor:[100,149,237], textColor:255},
       theme:'grid',
-      columnStyles:{0:{cellWidth:50},1:{cellWidth:50},2:{cellWidth:90}}
+      columnStyles:{0:{cellWidth:50},1:{cellWidth:60},2:{cellWidth:80}},
+      didDrawCell:function(data){
+        if(data.column.index===1){
+          const mediaArr=rows[data.row.index][3]; let x=data.cell.x+2; let y=data.cell.y+2;
+          mediaArr.forEach(m=>{
+            if(typeof m==="string" && m.startsWith("data:image")){
+              doc.addImage(m,"PNG",x,y,15,15); x+=17;
+            }
+          });
+        }
+      }
     });
     doc.save(`${selectedTopic.name}_LessonPlanner.pdf`);
   });
