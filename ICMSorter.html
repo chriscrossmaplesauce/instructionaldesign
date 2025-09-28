@@ -1,0 +1,223 @@
+let's call this version 6: 
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Water Cycle ICM - Right Angle Arrows</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f0f2f5;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
+.container {
+    display: flex;
+    gap: 20px;
+}
+.skeleton {
+    position: relative;
+    width: 700px;
+    height: 700px;
+    background: #fff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.drop-zone {
+    width: 220px;
+    min-height: 50px;
+    border: 2px dashed #bbb;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    color: #777;
+    position: absolute;
+    background: #f9f9f9;
+    transition: all 0.3s;
+    position: absolute; z-index: 2; 
+    z-index: 1;
+
+}
+.drop-zone.filled {
+    border-color: #48bb78;
+    background: #f0fff4;
+    color: #2d3748;
+    font-weight: 500;
+}
+.objective-item {
+    width: 200px;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    cursor: grab;
+    color: white;
+    font-size: 0.9em;
+}
+.entry-skill { background: #48bb78; }
+.learning-obj { background: #ed8936; }
+.culminating { background: #805ad5; }
+.toolbox {
+    width: 250px;
+}
+.category {
+    margin-bottom: 25px;
+}
+.category-title {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+svg { position: absolute; top:0; left:0; width: 100%; height: 100%; pointer-events:none; }
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="skeleton">
+        <!-- Top -->
+        <div class="drop-zone" id="E" style="top:20px; left:240px;">Drop E</div>
+        <div class="drop-zone" id="D" style="top:120px; left:240px;">Drop D</div>
+        <div class="drop-zone" id="C" style="top:220px; left:240px;">Drop C</div>
+
+        <!-- Right side A & B -->
+        <div class="drop-zone" id="A" style="top:360px; left:460px;">Drop A</div>
+        <div class="drop-zone" id="B" style="top:460px; left:460px;">Drop B</div>
+
+        <!-- Bottom Entry skills (more vertical spacing) -->
+        <div class="drop-zone" id="1" style="top:660px; left:-20px;">Drop 1</div>
+        <div class="drop-zone" id="2" style="top:660px; left:240px;">Drop 2</div>
+        <div class="drop-zone" id="3" style="top:660px; left:500px;">Drop 3</div>
+
+        <!-- SVG arrows -->
+        <svg id="arrows"></svg>
+    </div>
+
+    <div class="toolbox">
+        <div class="category">
+            <div class="category-title">Entry Skills</div>
+            <div class="objective-item entry-skill" draggable="true" data-target="1">Identify water in everyday life</div>
+            <div class="objective-item entry-skill" draggable="true" data-target="2">Observe water changes</div>
+            <div class="objective-item entry-skill" draggable="true" data-target="3">Understand basic weather terms</div>
+        </div>
+        <div class="category">
+            <div class="category-title">Learning Objectives</div>
+            <div class="objective-item learning-obj" draggable="true" data-target="A">Explain how water moves</div>
+            <div class="objective-item learning-obj" draggable="true" data-target="B">Know stages of the water cycle</div>
+            <div class="objective-item learning-obj" draggable="true" data-target="C">Draw and label the water cycle</div>
+        </div>
+        <div class="category">
+            <div class="category-title">Culminating Skills</div>
+            <div class="objective-item culminating" draggable="true" data-target="D">Create model/presentation showing water's movement</div>
+            <div class="objective-item culminating" draggable="true" data-target="E">Explain the water cycle & its importance</div>
+        </div>
+    </div>
+</div>
+
+<script>
+let dragged = null;
+document.querySelectorAll('.objective-item').forEach(item => {
+    item.addEventListener('dragstart', e => {
+        dragged = item;
+        setTimeout(()=> item.style.display='none', 0);
+    });
+    item.addEventListener('dragend', e => {
+        dragged = null;
+        item.style.display='block';
+    });
+});
+document.querySelectorAll('.drop-zone').forEach(zone => {
+    zone.addEventListener('dragover', e => e.preventDefault());
+    zone.addEventListener('drop', e => {
+        e.preventDefault();
+        if(dragged && dragged.dataset.target === zone.id && !zone.classList.contains('filled')) {
+            zone.innerHTML = dragged.innerHTML;
+            zone.classList.add('filled');
+            dragged.style.display='none';
+        }
+    });
+});
+
+// ===== SVG arrow drawing =====
+function getBoxCenter(box, side='top') {
+    const rect = box.getBoundingClientRect();
+    const parentRect = box.parentElement.getBoundingClientRect();
+    const x = rect.left - parentRect.left;
+    const y = rect.top - parentRect.top;
+    switch(side) {
+        case 'top': return [x + rect.width/2, y];
+        case 'bottom': return [x + rect.width/2, y + rect.height];
+        case 'left': return [x, y + rect.height/2];
+        case 'right': return [x + rect.width, y + rect.height/2];
+        default: return [x + rect.width/2, y + rect.height/2];
+    }
+}
+
+function drawArrow(svg, x1, y1, x2, y2, via=[]) {
+    let pathStr = `M${x1},${y1} `;
+    via.forEach(p => { pathStr += `L${p[0]},${p[1]} `; });
+    pathStr += `L${x2},${y2}`;
+    const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+    path.setAttribute("d", pathStr);
+    path.setAttribute("stroke", "#333");
+    path.setAttribute("stroke-width", "1");
+    path.setAttribute("fill", "none");
+    path.setAttribute("marker-end", "url(#arrow)");
+    svg.appendChild(path);
+}
+
+// Set up SVG
+const svg = document.getElementById('arrows');
+svg.innerHTML = `<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="270" markerUnits="strokeWidth">
+<path d="M00,0 L10,5 L0,10 L2,5 Z" fill="#333"/>
+</marker>
+</defs>`;
+
+
+
+// Boxes
+const boxes = {};
+['1','2','3','A','B','C','D','E'].forEach(id => boxes[id] = document.getElementById(id));
+
+// Entry skill feeder arrows (connect to horizontal main line to C)
+const [x1b,y1b] = getBoxCenter(boxes['1'],'bottom');
+const [x2b,y2b] = getBoxCenter(boxes['2'],'top');
+const [x3b,y3b] = getBoxCenter(boxes['3'],'top');
+const [xc,yc] = getBoxCenter(boxes['C'],'bottom');
+
+// Arrow from B to A
+const [xb2,yb2] = getBoxCenter(boxes['B'],'top');  // B left-center
+const [xa2,ya2] = getBoxCenter(boxes['A'],'bottom'); // A right-center
+drawArrow(svg, xb2, yb2, xa2, ya2, [[xb2, ya2]]); // right-angle path
+
+
+
+// Horizontal main line for feeder arrows
+const mainY = yc + 280; // horizontal line just above C
+
+drawArrow(svg, x1b, y1b, xc, mainY, [[x1b, mainY]]);
+drawArrow(svg, x2b, y2b, xc, mainY, [[x2b, mainY]]);
+drawArrow(svg, x3b, y3b, xc, mainY, [[x3b, mainY]]);
+
+// A & B arrows
+const [xa,ya] = getBoxCenter(boxes['A'],'left');
+const [xb,yb] = getBoxCenter(boxes['B'],'left');
+drawArrow(svg, xa, ya, xc, yc, [[xc, ya]]);
+
+
+// C -> D -> E
+const [xd,yd] = getBoxCenter(boxes['E'],'bottom');
+const [xe,ye] = getBoxCenter(boxes['2'],'top');
+
+
+
+
+drawArrow(svg, xc, yc, xd, yd, [[xc, yd]]);
+drawArrow(svg, xd, yd, xe, ye, [[xd, ye]]);
+</script>
+</body>
+</html>
