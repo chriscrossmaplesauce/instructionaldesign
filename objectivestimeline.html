@@ -13,9 +13,10 @@
   select { width: 130px; }
 </style>
 
-<!-- jsPDF and autoTable -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- jsPDF and autoTable (non-module version) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
 </head>
 <body>
 
@@ -56,7 +57,7 @@ const events = [
     {id:0, name:"N/A"} // Not applicable option
 ];
 
-// Smart scaffold logic based on objectives for plant cell lesson
+// Smart scaffold logic based on objectives
 function suggestedEvents(timeIndex, totalTimes, objectiveIndex) {
     const objectiveEvents = [
         [1,2,4],  // Identify structures
@@ -118,12 +119,13 @@ function exportMatrix() {
     const table = document.querySelector('#matrixContainer table');
     if(!table) { alert("No matrix to export!"); return; }
 
-    const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
+    // Headers
     const headers = [];
     table.rows[0].cells.forEach(cell => headers.push(cell.innerText));
 
+    // Table body
     const data = [];
     for(let r=1; r<table.rows.length; r++) {
         const row = [];
@@ -151,7 +153,7 @@ function exportMatrix() {
     doc.save("Plant_Cell_Matrix.pdf");
 }
 
-// Prefill an example lesson
+// Prefill example
 function prefillExample() {
     document.getElementById('lessonTopic').value = "Plant Cell Structure";
     
