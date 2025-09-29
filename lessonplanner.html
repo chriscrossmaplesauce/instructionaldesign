@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lesson Planner (Gagne's Nine Events Of Instruction)</title>
+<title>Lesson Planner - Version 2 Beautiful</title>
 <style>
 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f3f4f6; margin:0; padding:20px; color:#1f2937; }
 .container { max-width:1100px; margin:auto; background:white; padding:20px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1);}
 h1,h2,h3,h4{margin-top:0;}
+.lesson-planner-title { color:white; text-shadow: 1px 1px 3px rgba(0,0,0,0.7); }
 .card { border-radius:10px; padding:16px; margin:12px 0; cursor:pointer; position:relative; color:white; background-size:cover; background-position:center; box-shadow:0 1px 4px rgba(0,0,0,0.3); overflow:hidden; transition:transform 0.2s, box-shadow 0.2s;}
 .card:hover { transform: scale(1.03); box-shadow:0 4px 12px rgba(0,0,0,0.35); }
 .card::after { content: ''; position: absolute; inset:0; background: rgba(0,0,0,0.4); border-radius:10px; }
@@ -32,7 +33,7 @@ input[type=text] { border-radius:6px; border:1px solid #d1d5db; padding:6px; wid
 </head>
 <body>
 <div class="container">
-<h1>📚 Lesson Planner(Gagne's Nine Events Of Instruction)</h1>
+<h1>📚 Lesson Planner - Version 2 Beautiful</h1>
 <button id="surprise-btn" class="button">🎲 Surprise Me!</button>
 <button id="return-btn" class="button" style="display:none;">🏠 Return to Main Page</button>
 <div id="topic-selector"></div>
@@ -80,18 +81,17 @@ document.getElementById("surprise-btn").addEventListener("click",()=>{
 document.getElementById("return-btn").addEventListener("click",()=>{ renderTopics(); });
 
 // Show Planner function (sortable, media, suggestions, autosave, PDF export)
-// For brevity, this would include all previous Version 2 Beautiful JS code, with:
 function showPlanner(){
   document.getElementById("topic-selector").style.display="none"; 
   const container=document.getElementById("lesson-planner"); container.style.display="block";
   document.getElementById("return-btn").style.display="inline-block";
-  container.innerHTML=`<h2>${selectedTopic.name}</h2>`;
   container.style.position="relative";
   container.style.backgroundImage=`url('${selectedTopic.image}')`;
   container.style.backgroundSize="cover";
   container.style.backgroundPosition="center";
   container.style.backgroundRepeat="no-repeat";
   container.style.backgroundAttachment="fixed";
+  container.innerHTML=`<h2 class="lesson-planner-title">${selectedTopic.name}</h2>`;
 
   nineEvents.forEach(event=>{
     const div=document.createElement("div"); div.className="lesson-event"; div.dataset.id=event.id; div.dataset.title=event.title;
@@ -100,22 +100,24 @@ function showPlanner(){
       <div class="event-controls">${mediaOptions.map((m,i)=>`<label class="media-label"><input type="checkbox" data-index="${i}">${m}</label>`).join('')}
       <label class="media-label">Other: <input type="text" class="other-text" placeholder="Your idea here"></label></div>
       <div class="suggestions"><strong>Suggestions:</strong><ul>${(selectedTopic.suggestions[event.id]||[]).map(s=>`<li>${s}</li>`).join('')}</ul></div>
-      <textarea placeholder="How will you implement this event?"></textarea></div>`;
+      <textarea placeholder="How will you implement this event?"></textarea>
+    </div>`;
     container.appendChild(div);
 
-    const textarea=div.querySelector("textarea"); const checkboxes=div.querySelectorAll('input[type=checkbox]:not(.other-text)'); const otherText=div.querySelector(".other-text");
+    const textarea=div.querySelector("textarea"); 
+    const checkboxes=div.querySelectorAll('input[type=checkbox]:not(.other-text)'); 
+    const otherText=div.querySelector(".other-text");
 
     // Load autosave
     textarea.value=localStorage.getItem(`lesson_${selectedTopic.name}_${event.id}`)||"";
     const savedMedia=JSON.parse(localStorage.getItem(`lesson_${selectedTopic.name}_media_${event.id}`))||[];
     checkboxes.forEach((cb,i)=> cb.checked=savedMedia.includes(i));
-    if(savedMedia.some(m=>typeof m==="string")) { otherText.value=savedMedia.find(m=>typeof m==="string"); }
+    if(savedMedia.some(m=>typeof m==="string")) otherText.value=savedMedia.find(m=>typeof m==="string");
 
     // Autosave
     textarea.addEventListener("input",()=>{ localStorage.setItem(`lesson_${selectedTopic.name}_${event.id}`,textarea.value); });
     checkboxes.forEach((cb,i)=> cb.addEventListener("change",()=>{ saveMedia(event.id); }));
     otherText.addEventListener("input",()=>{ saveMedia(event.id); });
-    
     function saveMedia(eventId){
       let selected=Array.from(checkboxes).map((cb,i)=> cb.checked?i:null).filter(x=>x!==null);
       if(otherText.value.trim()!=="") selected.push(otherText.value.trim());
