@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Water Cycle ICM - Right Angle Arrows</title>
+<title>Water Cycle ICM - Responsive</title>
 <style>
 body {
     font-family: Arial, sans-serif;
-    background:url('water.jpg') no-repeat center center;
+    background: url('water.jpg') no-repeat center center;
+    background-size: cover;
     margin: 0;
     padding: 20px;
     display: flex;
@@ -15,23 +16,27 @@ body {
 }
 .container {
     display: flex;
+    flex-wrap: wrap;
     gap: 20px;
+    justify-content: center;
 }
 .skeleton {
     position: relative;
-    width: 700px;
-    height: 700px;
+    width: 90vw;
+    max-width: 700px;
+    aspect-ratio: 1;
     background: #fff;
-    padding: 40px;
+    padding: 5%;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 .drop-zone {
-    width: 220px;
+    width: 30%;
+    min-width: 120px;
     min-height: 50px;
     border: 2px dashed #bbb;
     border-radius: 8px;
-    padding: 10px;
+    padding: 5px;
     text-align: center;
     color: #777;
     position: absolute;
@@ -46,7 +51,7 @@ body {
     font-weight: 500;
 }
 .objective-item {
-    width: 200px;
+    width: 100%;
     padding: 10px;
     margin-bottom: 10px;
     border-radius: 8px;
@@ -58,7 +63,9 @@ body {
 .learning-obj { background: #ed8936; }
 .culminating { background: #805ad5; }
 .toolbox {
-    width: 250px;
+    width: 90vw;
+    max-width: 250px;
+    overflow-x: auto;
 }
 .category {
     margin-bottom: 25px;
@@ -73,28 +80,32 @@ svg { position: absolute; top:0; left:0; width: 100%; height: 100%; pointer-even
     color: #333;
     position: absolute;
 }
+@media (max-width: 480px) {
+    .label { font-size: 0.8em; }
+    .objective-item { font-size: 0.8em; }
+}
 </style>
 </head>
 <body>
 <div class="container">
     <div class="skeleton">
         <!-- Top -->
-        <div class="drop-zone" id="E" style="top:20px; left:240px;">Drop E</div>
-        <div class="drop-zone" id="D" style="top:120px; left:240px;">Drop D</div>
-        <div class="drop-zone" id="C" style="top:220px; left:240px;">Drop C</div>
+        <div class="drop-zone" id="E" style="top:3%; left:34%;">Drop E</div>
+        <div class="drop-zone" id="D" style="top:17%; left:34%;">Drop D</div>
+        <div class="drop-zone" id="C" style="top:31%; left:34%;">Drop C</div>
 
         <!-- Right side A & B -->
-        <div class="drop-zone" id="A" style="top:360px; left:460px;">Drop A</div>
-        <div class="drop-zone" id="B" style="top:460px; left:460px;">Drop B</div>
+        <div class="drop-zone" id="A" style="top:52%; left:66%;">Drop A</div>
+        <div class="drop-zone" id="B" style="top:66%; left:66%;">Drop B</div>
 
         <!-- Bottom Entry skills -->
-        <div class="drop-zone" id="1" style="top:660px; left:-20px;">Drop 1</div>
-        <div class="drop-zone" id="2" style="top:660px; left:240px;">Drop 2</div>
-        <div class="drop-zone" id="3" style="top:660px; left:500px;">Drop 3</div>
+        <div class="drop-zone" id="1" style="top:94%; left:0%;">Drop 1</div>
+        <div class="drop-zone" id="2" style="top:94%; left:34%;">Drop 2</div>
+        <div class="drop-zone" id="3" style="top:94%; left:66%;">Drop 3</div>
 
         <!-- Labels -->
-        <div class="label" style="top:330px; left:460px;">Information Objectives</div>
-        <div class="label" style="top:250px; left:20px;">Intellectual Skills Objectives</div>
+        <div class="label" style="top:46%; left:66%;">Information Objectives</div>
+        <div class="label" style="top:28%; left:2%;">Intellectual Skills Objectives</div>
 
         <!-- SVG arrows -->
         <svg id="arrows"></svg>
@@ -198,7 +209,7 @@ const [xa2,ya2] = getBoxCenter(boxes['A'],'bottom');
 drawArrow(svg, xb2, yb2, xa2, ya2, [[xb2, ya2]]);
 
 // Horizontal main line for feeder arrows
-const mainY = yc + 280;
+const mainY = yc + 0.4 * boxes['C'].parentElement.offsetHeight; // proportionally
 drawArrow(svg, x1b, y1b, xc, mainY, [[x1b, mainY]]);
 drawArrow(svg, x2b, y2b, xc, mainY, [[x2b, mainY]]);
 drawArrow(svg, x3b, y3b, xc, mainY, [[x3b, mainY]]);
