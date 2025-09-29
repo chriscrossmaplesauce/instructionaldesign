@@ -2,15 +2,17 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Smart Scaffolded Matrix</title>
+<title>Smart Scaffolded Objectives/Time-Line Matrix</title>
 <style>
   body { font-family: Arial, sans-serif; margin: 20px; }
-  input, select { margin-bottom: 10px; width: 100%; }
+  input, select { margin-bottom: 10px; width: 100%; box-sizing: border-box; }
   table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-  th, td { border: 1px solid #333; padding: 8px; text-align: center; }
+  th, td { border: 1px solid #333; padding: 6px; text-align: center; vertical-align: middle; }
   th { background-color: #f0f0f0; }
   .button { margin-top: 10px; padding: 10px; cursor:pointer; border:none; background:#4f46e5; color:white; border-radius:6px; }
-  select { width: 130px; }
+  select { width: 100%; }
+  input { padding:4px; }
+  .time-arrow { font-weight: bold; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -25,25 +27,37 @@
 <label>Enter Objectives (comma-separated):</label>
 <input type="text" id="objectives">
 
+<label>Enter Entry Skills (comma-separated):</label>
+<input type="text" id="entrySkills">
+
 <label>Number of Time Blocks:</label>
 <input type="number" id="timeBlocks" value="5" min="1">
 
 <h3>Instructional Events (Gagné 9 Events)</h3>
 <p>1: Gain attention, 2: Inform objectives, 3: Stimulate recall, 4: Present content, 5: Provide guidance, 6: Elicit performance, 7: Provide feedback, 8: Assess performance, 9: Enhance retention/transfer</p>
 
-<button class="button" onclick="generateSmartMatrix()">Generate Matrix</button>
-<button class="button" onclick="exportSmartMatrixPDF()">Export Matrix as PDF</button>
+<button class="button" onclick="prefillExample()">Prefill Example</button>
+<button class="button" onclick="generateSmartMatrix()">Generate Smart Scaffolded Matrix</button>
+<button class="button" onclick="exportMatrix()">Export as PDF</button>
+<button class="button" onclick="clearMatrix()">Clear/Reset Matrix</button>
 
 <div id="matrixContainer"></div>
 
 <script>
 const events = [
-    {id:1, name:"Gain attention"}, {id:2, name:"Inform objectives"}, {id:3, name:"Stimulate recall"},
-    {id:4, name:"Present content"}, {id:5, name:"Provide guidance"}, {id:6, name:"Elicit performance"},
-    {id:7, name:"Provide feedback"}, {id:8, name:"Assess performance"}, {id:9, name:"Enhance retention/transfer"}, {id:0, name:"N/A"}
+    {id:1, name:"Gain attention"},
+    {id:2, name:"Inform objectives"},
+    {id:3, name:"Stimulate recall"},
+    {id:4, name:"Present content"},
+    {id:5, name:"Provide guidance"},
+    {id:6, name:"Elicit performance"},
+    {id:7, name:"Provide feedback"},
+    {id:8, name:"Assess performance"},
+    {id:9, name:"Enhance retention/transfer"},
+    {id:0, name:"N/A"}
 ];
 
-// Smart scaffold logic
+// Suggested events logic
 function suggestedEvents(timeIndex, totalTimes, objectiveIndex) {
     const objectiveEvents = [
         [1,2,4], [4,5], [3,4], [4,6], [6,7,8]
@@ -61,71 +75,159 @@ function suggestedEvents(timeIndex, totalTimes, objectiveIndex) {
     return selectedEvents;
 }
 
-// Generate matrix table
+// Generate matrix
 function generateSmartMatrix(){
     const topic = document.getElementById('lessonTopic').value || "Lesson Topic";
     const objectives = document.getElementById('objectives').value.split(',').map(o=>o.trim()).filter(o=>o);
+    const entrySkills = document.getElementById('entrySkills').value.split(',').map(e=>e.trim()).filter(e=>e);
     const timeBlocks = parseInt(document.getElementById('timeBlocks').value);
-    if(objectives.length===0){ alert("Enter at least one objective."); return; }
 
-    let html=`<h3>Smart Scaffolded Matrix for "${topic}"</h3><table><tr><th>Objective</th>`;
-    for(let t=1; t<=timeBlocks; t++) html+=`<th>T${t}</th>`; html+='</tr>';
+    if(objectives.length===0) { alert("Please enter at least one objective."); return; }
 
+    let html = `<h3>Smart Scaffolded Matrix for "${topic}"</h3>`;
+    html += '<table><tr><th>Section</th><th>Objective / Entry Skill</th>';
+    for(let t=1; t<=timeBlocks; t++) html += `<th>T${t}</th>`;
+    html += '</tr>';
+
+    // Objectives
     objectives.forEach((obj,objIndex)=>{
-        html+=`<tr><td>${obj}</td>`;
-        for(let tIndex=0;tIndex<timeBlocks;tIndex++){
+        html += `<tr><td>Objectives</td><td><input type="text" value="${obj}"></td>`;
+        for(let tIndex=0; tIndex<timeBlocks; tIndex++){
             const preselect = suggestedEvents(tIndex,timeBlocks,objIndex);
             let options = `<select multiple>`;
-            events.forEach(ev=>{ options+=`<option value="${ev.id}" ${preselect.includes(ev.id)?"selected":""}>${ev.name}</option>`; });
-            options+=`</select>`;
-            html+=`<td>${options}</td>`;
+            events.forEach(ev=>{
+                const selected = preselect.includes(ev.id) ? "selected" : "";
+                options += `<option value="${ev.id}" ${selected}>${ev.name}</option>`;
+            });
+            options += `</select>`;
+            html += `<td>${options}</td>`;
         }
-        html+='</tr>';
+        html += `</tr>`;
     });
-    html+='</table>';
-    document.getElementById('matrixContainer').innerHTML=html;
+
+    // Entry Skills
+    entrySkills.forEach(skill=>{
+        html += `<tr><td>Entry Skills</td><td><input type="text" value="${skill}"></td>`;
+        for(let tIndex=0;tIndex<timeBlocks;tIndex++){
+            html += `<td></td>`;
+        }
+        html += `</tr>`;
+    });
+
+    // Instructional activities header with T1..Tn
+    html += `<tr><td></td><td>Instructional Activities</td>`;
+    for(let t=1;t<=timeBlocks;t++) html += `<td>T${t}</td>`;
+    html += `</tr>`;
+
+    // Bottom time arrow
+    html += `<tr><td></td><td colspan="${timeBlocks}" class="time-arrow">-----------Time ----------></td></tr>`;
+
+    html += `</table>`;
+    document.getElementById('matrixContainer').innerHTML = html;
+}
+
+// Prefill example
+function prefillExample(){
+    document.getElementById('lessonTopic').value = "Plant Cell Lesson";
+    document.getElementById('objectives').value = "Identify plant cell organelles,Describe functions of organelles,Compare plant vs animal cell";
+    document.getElementById('entrySkills').value = "Basic biology knowledge,Cell theory understanding,Microscope skills";
+    generateSmartMatrix();
+}
+
+// Clear
+function clearMatrix(){
+    document.getElementById('lessonTopic').value = "";
+    document.getElementById('objectives').value = "";
+    document.getElementById('entrySkills').value = "";
+    document.getElementById('timeBlocks').value = 5;
+    document.getElementById('matrixContainer').innerHTML = "";
 }
 
 // Export PDF
-function exportSmartMatrixPDF(){
+function exportMatrix() {
     const table = document.querySelector('#matrixContainer table');
-    if(!table){ alert("No matrix to export!"); return; }
+    if (!table) { alert("No matrix to export!"); return; }
 
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+    const doc = new jsPDF({ orientation: 'landscape' });
 
     const topic = document.getElementById('lessonTopic').value || "Lesson Topic";
-    doc.setFontSize(16); doc.text(`Smart Scaffolded Matrix: ${topic}`,10,10); doc.setFontSize(12);
-    let startY=20;
+    const safeTopic = topic.replace(/[\/\\:*?"<>|]/g, "_");
 
-    const objectives = document.getElementById('objectives').value.split(',').map(o=>o.trim()).filter(o=>o);
-    if(objectives.length>0){ doc.text("Objectives:",10,startY); startY+=6;
-        objectives.forEach(o=>{ doc.text("• "+o,12,startY); startY+=6; });
-    }
+    doc.setFontSize(16);
+    doc.text(`Smart Scaffolded Matrix: ${topic}`, 10, 10);
 
-    const headers=[]; for(let cell of table.rows[0].cells) headers.push(cell.innerText);
-    const body=[];
-    for(let r=1;r<table.rows.length;r++){
-        const row=[]; 
-        for(let c=0;c<table.rows[r].cells.length;c++){
-            const cell = table.rows[r].cells[c]; 
+    // Legend
+    doc.setFontSize(12);
+    const gagneEvents = [
+        { id: 1, name: "Gain attention" },
+        { id: 2, name: "Inform objectives" },
+        { id: 3, name: "Stimulate recall" },
+        { id: 4, name: "Present content" },
+        { id: 5, name: "Provide guidance" },
+        { id: 6, name: "Elicit performance" },
+        { id: 7, name: "Provide feedback" },
+        { id: 8, name: "Assess performance" },
+        { id: 9, name: "Enhance retention/transfer" }
+    ];
+    let startY = 20;
+    doc.text("Legend (Gagné 9 Events):", 10, startY);
+    startY += 6;
+    gagneEvents.forEach(ev => {
+        doc.text(`${ev.id}: ${ev.name}`, 12, startY);
+        startY += 6;
+    });
+    startY += 4;
+
+    // Headers
+    const headers = Array.from(table.rows[0].cells).map(cell => cell.innerText.trim());
+
+    // Extract all rows into simple arrays
+    const body = [];
+    for (let r = 1; r < table.rows.length; r++) {
+        const row = [];
+        for (let c = 0; c < table.rows[r].cells.length; c++) {
+            const cell = table.rows[r].cells[c];
             const select = cell.querySelector('select');
-            row.push(select? Array.from(select.selectedOptions).map(o=>o.text).join(", ") || "N/A" : cell.innerText);
+            const input = cell.querySelector('input');
+
+            if (select) {
+                const numbers = Array.from(select.selectedOptions)
+                    .map(o => o.value)
+                    .filter(v => v !== "0");
+                row.push(numbers.length ? numbers.join(", ") : "");
+            } else if (input) {
+                row.push(input.value || "");
+            } else {
+                row.push(cell.innerText.trim().replace(/\n/g, " "));
+            }
         }
         body.push(row);
     }
 
+    // Merge bottom Time row across T columns
+    const lastRow = body.pop();
+    const mergedTimeRow = lastRow.map((cell, i) => {
+        if (i === 0) return ""; // first column blank
+        if (i === 1) return { content: cell, colSpan: lastRow.length - 1, styles: { halign: 'center' } };
+        return null; // skip merged
+    });
+    body.push(mergedTimeRow);
+
+    // Generate table
     doc.autoTable({
-        startY: startY+6,
+        startY: startY,
         head: [headers],
         body: body,
-        styles: { fontSize:10, cellWidth:'wrap' },
-        headStyles: { fillColor:[200,200,200] },
-        theme:'grid'
+        styles: { fontSize: 10, cellWidth: 'auto', overflow: 'linebreak', valign: 'middle', halign: 'center' },
+        headStyles: { fillColor: [173, 235, 179] }, // #ADEBB3
+        theme: 'grid'
     });
 
-    doc.save(`${topic}_SmartMatrix.pdf`);
+    doc.save(`${safeTopic}_SmartMatrix.pdf`);
 }
+
+
 </script>
 
 </body>
