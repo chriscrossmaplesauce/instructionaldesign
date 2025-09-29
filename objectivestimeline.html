@@ -1,60 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Smart Scaffolded Matrix</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; }
+  input, select { margin-bottom: 10px; width: 100%; }
+  table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+  th, td { border: 1px solid #333; padding: 8px; text-align: center; }
+  th { background-color: #f0f0f0; }
+  .button { margin-top: 10px; padding: 10px; cursor:pointer; border:none; background:#4f46e5; color:white; border-radius:6px; }
+  select { width: 130px; }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+
+<h2>Smart Scaffolded Objectives/Time-Line Matrix</h2>
+
+<label>Lesson Topic:</label>
+<input type="text" id="lessonTopic" placeholder="e.g., Parts of the Cell">
+
+<label>Enter Objectives (comma-separated):</label>
+<input type="text" id="objectives">
+
+<label>Number of Time Blocks:</label>
+<input type="number" id="timeBlocks" value="5" min="1">
+
+<h3>Instructional Events (Gagné 9 Events)</h3>
+<p>1: Gain attention, 2: Inform objectives, 3: Stimulate recall, 4: Present content, 5: Provide guidance, 6: Elicit performance, 7: Provide feedback, 8: Assess performance, 9: Enhance retention/transfer</p>
+
+<button class="button" onclick="generateSmartMatrix()">Generate Matrix</button>
+<button class="button" onclick="exportSmartMatrixPDF()">Export Matrix as PDF</button>
+
+<div id="matrixContainer"></div>
+
 <script>
-function exportSmartMatrixPDF() {
+const events = [
+    {id:1, name:"Gain attention"}, {id:2, name:"Inform objectives"}, {id:3, name:"Stimulate recall"},
+    {id:4, name:"Present content"}, {id:5, name:"Provide guidance"}, {id:6, name:"Elicit performance"},
+    {id:7, name:"Provide feedback"}, {id:8, name:"Assess performance"}, {id:9, name:"Enhance retention/transfer"}, {id:0, name:"N/A"}
+];
+
+// Smart scaffold logic
+function suggestedEvents(timeIndex, totalTimes, objectiveIndex) {
+    const objectiveEvents = [
+        [1,2,4], [4,5], [3,4], [4,6], [6,7,8]
+    ];
+    const eventsForObjective = objectiveEvents[objectiveIndex] || [];
+    const earlyBlock = 0;
+    const midBlock = Math.floor(totalTimes/2);
+    const lateBlock = totalTimes-1;
+    let selectedEvents = [];
+    eventsForObjective.forEach(ev=>{
+        if(timeIndex===earlyBlock && [1,2,3].includes(ev)) selectedEvents.push(ev);
+        else if(timeIndex===midBlock && [4,5,6].includes(ev)) selectedEvents.push(ev);
+        else if(timeIndex===lateBlock && [7,8,9].includes(ev)) selectedEvents.push(ev);
+    });
+    return selectedEvents;
+}
+
+// Generate matrix table
+function generateSmartMatrix(){
+    const topic = document.getElementById('lessonTopic').value || "Lesson Topic";
+    const objectives = document.getElementById('objectives').value.split(',').map(o=>o.trim()).filter(o=>o);
+    const timeBlocks = parseInt(document.getElementById('timeBlocks').value);
+    if(objectives.length===0){ alert("Enter at least one objective."); return; }
+
+    let html=`<h3>Smart Scaffolded Matrix for "${topic}"</h3><table><tr><th>Objective</th>`;
+    for(let t=1; t<=timeBlocks; t++) html+=`<th>T${t}</th>`; html+='</tr>';
+
+    objectives.forEach((obj,objIndex)=>{
+        html+=`<tr><td>${obj}</td>`;
+        for(let tIndex=0;tIndex<timeBlocks;tIndex++){
+            const preselect = suggestedEvents(tIndex,timeBlocks,objIndex);
+            let options = `<select multiple>`;
+            events.forEach(ev=>{ options+=`<option value="${ev.id}" ${preselect.includes(ev.id)?"selected":""}>${ev.name}</option>`; });
+            options+=`</select>`;
+            html+=`<td>${options}</td>`;
+        }
+        html+='</tr>';
+    });
+    html+='</table>';
+    document.getElementById('matrixContainer').innerHTML=html;
+}
+
+// Export PDF
+function exportSmartMatrixPDF(){
     const table = document.querySelector('#matrixContainer table');
     if(!table){ alert("No matrix to export!"); return; }
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    // Add lesson topic at top
     const topic = document.getElementById('lessonTopic').value || "Lesson Topic";
-    doc.setFontSize(16);
-    doc.text(`Smart Scaffolded Matrix: ${topic}`, 10, 10);
-    doc.setFontSize(12);
-    let startY = 20;
+    doc.setFontSize(16); doc.text(`Smart Scaffolded Matrix: ${topic}`,10,10); doc.setFontSize(12);
+    let startY=20;
 
-    // Add objectives as a list
     const objectives = document.getElementById('objectives').value.split(',').map(o=>o.trim()).filter(o=>o);
-    if(objectives.length > 0){
-        doc.text("Objectives:", 10, startY);
-        startY += 6;
-        objectives.forEach(obj=>{
-            doc.text("• "+obj, 12, startY);
-            startY += 6;
-        });
+    if(objectives.length>0){ doc.text("Objectives:",10,startY); startY+=6;
+        objectives.forEach(o=>{ doc.text("• "+o,12,startY); startY+=6; });
     }
 
-    // Build table data
-    const headers = [];
-    for(let cell of table.rows[0].cells){
-        headers.push(cell.innerText);
-    }
-
-    const body = [];
-    for(let r=1; r<table.rows.length; r++){
-        const row = [];
-        for(let c=0; c<table.rows[r].cells.length; c++){
-            const cell = table.rows[r].cells[c];
+    const headers=[]; for(let cell of table.rows[0].cells) headers.push(cell.innerText);
+    const body=[];
+    for(let r=1;r<table.rows.length;r++){
+        const row=[]; 
+        for(let c=0;c<table.rows[r].cells.length;c++){
+            const cell = table.rows[r].cells[c]; 
             const select = cell.querySelector('select');
-            if(select){
-                const selected = Array.from(select.selectedOptions).map(o=>o.text).join(", ");
-                row.push(selected || "N/A");
-            } else {
-                row.push(cell.innerText);
-            }
+            row.push(select? Array.from(select.selectedOptions).map(o=>o.text).join(", ") || "N/A" : cell.innerText);
         }
         body.push(row);
     }
 
     doc.autoTable({
-        startY: startY + 6,
+        startY: startY+6,
         head: [headers],
         body: body,
-        styles: { fontSize: 10, cellWidth: 'wrap' },
-        headStyles: { fillColor: [200, 200, 200] },
-        theme: 'grid'
+        styles: { fontSize:10, cellWidth:'wrap' },
+        headStyles: { fillColor:[200,200,200] },
+        theme:'grid'
     });
 
     doc.save(`${topic}_SmartMatrix.pdf`);
 }
 </script>
+
+</body>
+</html>
