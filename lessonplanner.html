@@ -1,245 +1,146 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Lesson Planner - Version 2 Fixed</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f2f5;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      padding: 20px;
-      text-align: center;
-    }
-    .title {
-      font-size: 2em;
-      margin-bottom: 20px;
-    }
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
-      max-width: 1000px;
-      margin: 0 auto;
-    }
-    .card {
-      border-radius: 12px;
-      padding: 20px;
-      background-size: cover;
-      background-position: center;
-      color: white;
-      height: 150px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.3em;
-      font-weight: bold;
-      cursor: pointer;
-      text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
-    }
-    .lesson-event {
-      background: rgba(255,255,255,0.9);
-      margin: 15px auto;
-      padding: 15px;
-      border-radius: 10px;
-      text-align: left;
-      max-width: 800px;
-      position: relative;
-    }
-    .lesson-event h3 {
-      margin-top: 0;
-    }
-    .drag-handle {
-      cursor: grab;
-      font-size: 18px;
-      margin-right: 8px;
-    }
-    textarea {
-      width: 100%;
-      min-height: 60px;
-      margin-top: 10px;
-      padding: 8px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-    }
-    .media-options {
-      margin-top: 10px;
-    }
-    .suggestions {
-      margin-top: 10px;
-      font-style: italic;
-      color: #444;
-    }
-    .suggestions li {
-      cursor: pointer;
-      margin-bottom: 5px;
-    }
-    .button {
-      background: #4CAF50;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 6px;
-      margin: 10px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-    .button:hover {
-      background: #45a049;
-    }
-    .lesson-planner-title {
-      color: white;
-      text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
-      margin-bottom: 20px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson Planner - Version 2.3</title>
+<style>
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f3f4f6; margin:0; padding:20px; color:#1f2937; }
+.container { max-width:1100px; margin:auto; background:white; padding:20px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+h1,h2,h3,h4{margin-top:0;}
+.card { border-radius:10px; padding:16px; margin:12px 0; cursor:pointer; position:relative; color:white; background-size:cover; background-position:center; box-shadow:0 1px 4px rgba(0,0,0,0.3); overflow:hidden; transition:transform 0.2s, box-shadow 0.2s;}
+.card:hover { transform: scale(1.03); box-shadow:0 4px 12px rgba(0,0,0,0.35); }
+.card::after { content: ''; position: absolute; inset:0; background: rgba(0,0,0,0.4); border-radius:10px; }
+.card h3, .card p { position: relative; z-index:1; }
+textarea { width:100%; min-height:70px; border-radius:8px; border:1px solid #d1d5db; padding:8px; margin:6px 0; resize:vertical; font-family:inherit; }
+input[type=text] { border-radius:6px; border:1px solid #d1d5db; padding:6px; width:100%; font-family:inherit; }
+.button { background:#4f46e5; color:white; padding:10px 18px; border:none; border-radius:10px; cursor:pointer; margin:6px 0; font-size:14px; }
+.button:hover { background:#4338ca; }
+.lesson-event { border:1px solid #e5e7eb; padding:12px; margin:10px 0; border-radius:10px; background:#f9fafb; display:flex; gap:12px; align-items:flex-start; position:relative; }
+.event-controls { display:flex; flex-wrap:wrap; gap:10px; margin-top:6px; align-items:flex-start; }
+.suggestions { background:#eef2ff; padding:8px 12px; border-left:5px solid #4f46e5; border-radius:6px; margin-top:6px; }
+.suggestions li { cursor:pointer; color:#4f46e5; margin-bottom:3px; display:inline-block; padding:4px 8px; border-radius:6px; background:#e0e7ff; }
+.suggestions li:hover { background:#c7d2fe; text-decoration:none; }
+.drag-handle { cursor:grab; font-size:20px; margin-right:10px; user-select:none; }
+.media-label { display:flex; align-items:center; gap:4px; background:#f3f4f6; padding:4px 8px; border-radius:6px; font-size:13px; }
+#return-btn { margin-bottom:16px; }
+#lesson-planner { padding:10px; border-radius:12px; position:relative; }
+#lesson-planner::before { content:''; position:absolute; inset:0; background-size:cover; background-position:center; opacity:0.08; border-radius:12px; z-index:0; }
+.lesson-event textarea, .lesson-event input { position:relative; z-index:1; }
+h2.lesson-title { color:white; text-shadow: 1px 1px 4px rgba(0,0,0,0.7); }
+@media (max-width:600px){ .event-controls{flex-direction:column;} }
+</style>
 </head>
 <body>
-<div class="container" id="main-container">
-  <h1 class="title">Lesson Planner</h1>
-  <div class="card-grid">
-    <div class="card" style="background-image:url('plants.jpg')" onclick="showPlanner('Plant Parts')">🌱 Plant Parts</div>
-    <div class="card" style="background-image:url('butterflies.jpg')" onclick="showPlanner('Butterfly Life Cycle')">🦋 Butterfly Life Cycle</div>
-    <div class="card" style="background-image:url('fruits.jpg')" onclick="showPlanner('Healthy Foods')">🍎 Healthy Foods</div>
-    <div class="card" style="background-image:url('blocks.jpg')" onclick="showPlanner('DIY')">🛠️ Do-It-Yourself</div>
-  </div>
-</div>
+<div class="container">
+<h1>📚 Lesson Planner - Version 2.3</h1>
+<button id="surprise-btn" class="button">🎲 Surprise Me!</button>
+<button id="return-btn" class="button" style="display:none;">🏠 Return to Main Page</button>
+<div id="topic-selector"></div>
+<div id="lesson-planner" style="display:none;"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
 <script>
-const topics = {
-  "Plant Parts": {
-    bg: "plants.jpg",
-    objective: "Students will identify and describe the functions of major plant parts: roots, stems, leaves, flowers.",
-    events: [
-      {id:"roots", title:"Roots", suggestions:["Roots absorb water","Anchor the plant","Store nutrients"]},
-      {id:"stems", title:"Stems", suggestions:["Transport water","Support plant","Carry nutrients"]},
-      {id:"leaves", title:"Leaves", suggestions:["Photosynthesis","Exchange gases","Provide shade"]},
-      {id:"flowers", title:"Flowers", suggestions:["Attract pollinators","Reproduction","Produce seeds"]}
-    ]
-  },
-  "Butterfly Life Cycle": {
-    bg: "butterflies.jpg",
-    objective: "Students will explain each stage of a butterfly’s life: egg, caterpillar, chrysalis (pupa), adult butterfly.",
-    events: [
-      {id:"egg", title:"Egg", suggestions:["Butterfly eggs on leaves","Small and round","Hatch into larvae"]},
-      {id:"caterpillar", title:"Caterpillar", suggestions:["Eats leaves","Grows quickly","Molts skin"]},
-      {id:"pupa", title:"Pupa/Chrysalis", suggestions:["Transformation stage","Protective casing","Metamorphosis occurs"]},
-      {id:"adult", title:"Adult Butterfly", suggestions:["Emerges with wings","Pollinates flowers","Lays eggs"]}
-    ]
-  },
-  "Healthy Foods": {
-    bg: "fruits.jpg",
-    objective: "Students will categorize foods into healthy groups and explain benefits of fruits, vegetables, grains, and proteins.",
-    events: [
-      {id:"fruits", title:"Fruits", suggestions:["Good source of vitamins","Sweet and healthy snacks","Examples: apples, bananas"]},
-      {id:"vegetables", title:"Vegetables", suggestions:["Rich in fiber","Essential nutrients","Examples: carrots, broccoli"]},
-      {id:"grains", title:"Grains", suggestions:["Provide energy","Examples: rice, bread","Choose whole grains"]},
-      {id:"proteins", title:"Proteins", suggestions:["Build muscles","Examples: beans, meat","Important for growth"]}
-    ]
-  },
-  "DIY": {
-    bg: "blocks.jpg",
-    objective: "Teachers can create their own lesson plan by defining objectives and key content.",
-    events: [
-      {id:"event1", title:"Custom Event 1", suggestions:["Add your own idea","Tailor to your students","Be creative"]},
-      {id:"event2", title:"Custom Event 2", suggestions:["Add another activity","Include discussions","Hands-on task"]},
-      {id:"event3", title:"Custom Event 3", suggestions:["Assessment method","Reflection","Sharing results"]}
-    ]
-  }
-};
+// --------------------- Topics ---------------------
+const topics=[
+{name:"Life Cycles of Butterflies", subject:"Science", objectives:["Identify four stages of a butterfly life cycle","Sequence egg, caterpillar, chrysalis, butterfly","Describe what happens at each stage"], content:{stages:["Egg: laid on leaves","Caterpillar: eats & grows","Chrysalis: protective casing","Butterfly: adult emerges"]}, suggestions:{1:["Show time-lapse","Ask if seen butterflies","Play butterfly music"],2:["Display objectives","Repeat aloud","Explain goal"],3:["Recall other insects","Discuss caterpillar stages","Show short insect video"],4:["Present images","Explain terms","Show diagram"],5:["Use model","Sequence cards","Draw together"],6:["Draw life cycle","Label stages","Matching activity"],7:["Feedback","Correct misconceptions","Praise effort"],8:["Quiz","Explain to partner","Oral recap"],9:["Worksheet","Outdoor observation","Keep journal"]}, image:"butterflies.jpg"},
+{name:"Plant Parts", subject:"Science", objectives:["Name roots, stem, leaves, flowers","Explain job of each part","Identify on real plants/pictures"], content:{parts:["Roots absorb water","Stem supports & transports","Leaves make food","Flowers produce seeds"]}, suggestions:{1:["Show plant video","Ask what plants need","Bring plant"],2:["Display objectives","Read aloud","Explain usefulness"],3:["Ask known parts","Discuss favorites","Show leaves"],4:["Show diagrams","Explain functions","Cross-section"],5:["Show real parts","Guide touching","Use magnifying glass"],6:["Label worksheet","Draw & color","Assemble cut-out"],7:["Feedback","Correct mistakes","Praise"],8:["Quick questions","Short quiz","Match parts"],9:["Observe at home","Record changes","Start journal"]}, image:"plants.jpg"},
+{name:"Healthy Foods", subject:"Health", objectives:["Sort foods healthy/less healthy","Identify food groups","Explain why healthy foods help growth"], content:{foodGroups:["Fruits: vitamins","Vegetables: growth","Proteins: muscles","Grains: energy","Dairy: bones & teeth"]}, suggestions:{1:["Show pictures","Ask what they ate","Play song"],2:["Display objectives","Read aloud","Explain importance"],3:["Ask favorite foods","Discuss healthy","Recall last meal"],4:["Present groups","Explain role","Use pyramid"],5:["Sort pictures","Make posters","Guide grouping"],6:["Classify cards","Create meal plans","Plate sorting"],7:["Feedback","Correct mistakes","Praise"],8:["Quiz","Explain why healthy","Matching game"],9:["Food diary","Track weekly","Family challenge"]}, image:"fruits.jpg"},
+{name:"Do-It-Yourself", subject:"Custom", objectives:["Enter your lesson objectives here..."], content:{customContent:["Enter key content here..."]}, suggestions:{1:["Add creative element","Group work","Link real-life"],2:["Add creative element","Group work","Link real-life"],3:["Add creative element","Group work","Link real-life"],4:["Add creative element","Group work","Link real-life"],5:["Add creative element","Group work","Link real-life"],6:["Add creative element","Group work","Link real-life"],7:["Add creative element","Group work","Link real-life"],8:["Add creative element","Group work","Link real-life"],9:["Add creative element","Group work","Link real-life"]}, image:"blocks.jpg"}
+];
 
-const mediaOptions=["Slides","Images","Videos","Worksheets","Discussion","Experiment","Other"];
+// --------------------- Gagné Events ---------------------
+const nineEvents=[{id:1,title:"Gaining Attention"},{id:2,title:"Informing Learners of Objectives"},{id:3,title:"Stimulating Recall"},{id:4,title:"Presenting Content"},{id:5,title:"Providing Learning Guidance"},{id:6,title:"Eliciting Performance"},{id:7,title:"Providing Feedback"},{id:8,title:"Assessing Performance"},{id:9,title:"Enhancing Retention"}];
 
-function showPlanner(topicName){
-  const topic=topics[topicName];
-  const container=document.getElementById("main-container");
-  container.innerHTML=`<h2 class="lesson-planner-title">${topicName}</h2>
-    <p style="color:white; font-weight:bold;">Objective: ${topic.objective}</p>
-    <button class="button" onclick="location.reload()">⬅️ Return to Main Page</button>`;
-  container.style.backgroundImage=`url('${topic.bg}')`;
+let selectedTopic=null;
+const mediaOptions=["🎥 Video","🖼️ Pictures","📊 Charts","🧸 Physical Objects","📱 Interactive Whiteboard","📝 Worksheets","🎵 Songs/Audio","🎭 Role Play/Drama"];
+
+// --------------------- Render Topics ---------------------
+function renderTopics(){
+  const container=document.getElementById("topic-selector"); container.innerHTML=""; container.style.display="block";
+  document.getElementById("lesson-planner").style.display="none"; document.getElementById("return-btn").style.display="none";
+  topics.forEach(topic=>{
+    const div=document.createElement("div"); div.className="card";
+    div.style.backgroundImage=`url('${topic.image}')`;
+    div.innerHTML=`<h3>${topic.name}</h3><p>${topic.subject}</p><p><strong>Objective:</strong> ${topic.objectives[0]}</p>`;
+    div.addEventListener("click",()=>{ selectedTopic=topic; showPlanner(); });
+    container.appendChild(div);
+  });
+}
+renderTopics();
+
+// --------------------- Surprise Me ---------------------
+document.getElementById("surprise-btn").addEventListener("click",()=>{
+  selectedTopic=topics[Math.floor(Math.random()*topics.length)]; showPlanner();
+});
+
+// --------------------- Return ---------------------
+document.getElementById("return-btn").addEventListener("click",()=>{ renderTopics(); });
+
+// --------------------- Show Planner ---------------------
+function showPlanner(){
+  document.getElementById("topic-selector").style.display="none"; 
+  const container=document.getElementById("lesson-planner"); container.style.display="block";
+  document.getElementById("return-btn").style.display="inline-block";
+  container.innerHTML=`<h2 class="lesson-title">${selectedTopic.name}</h2>`;
+  container.style.position="relative";
+  container.style.backgroundImage=`url('${selectedTopic.image}')`;
   container.style.backgroundSize="cover";
   container.style.backgroundPosition="center";
-  container.style.position="relative";
+  container.style.backgroundRepeat="no-repeat";
+  container.style.backgroundAttachment="fixed";
 
-  topic.events.forEach(event=>{
-    const div=document.createElement("div");
-    div.className="lesson-event";
-    div.dataset.title=event.title;
-    div.innerHTML=`
-      <h3><span class="drag-handle">☰</span> ${event.title}</h3>
-      <div class="media-options"><b>Media:</b><br>
-        ${mediaOptions.map((m,i)=>`<label><input type="checkbox" value="${m}">${m}</label>`).join(" ")}
-        <label>Other: <input type="text" class="other-text"></label>
-      </div>
-      <div class="suggestions"><b>Suggestions:</b><ul>${event.suggestions.map(s=>`<li>${s}</li>`).join("")}</ul></div>
-      <textarea placeholder="How will you implement this event?"></textarea>
-    `;
+  nineEvents.forEach(event=>{
+    const div=document.createElement("div"); div.className="lesson-event"; div.dataset.id=event.id; div.dataset.title=event.title;
+    div.innerHTML=`<span class="drag-handle">☰</span><div style="flex:1;">
+      <h4>${event.id}. ${event.title}</h4>
+      <div class="event-controls">${mediaOptions.map((m,i)=>`<label class="media-label"><input type="checkbox" data-index="${i}">${m}</label>`).join('')}
+      <label class="media-label">Other: <input type="text" class="other-text" placeholder="Your idea here"></label></div>
+      <div class="suggestions"><strong>Suggestions:</strong><ul>${(selectedTopic.suggestions[event.id]||[]).map(s=>`<li>${s}</li>`).join('')}</ul></div>
+      <textarea placeholder="How will you implement this event?"></textarea></div>`;
     container.appendChild(div);
 
-    const textarea=div.querySelector("textarea");
-    const checkboxes=div.querySelectorAll('input[type=checkbox]:not(.other-text)');
-    const otherText=div.querySelector(".other-text");
+    const textarea=div.querySelector("textarea"); const checkboxes=div.querySelectorAll('input[type=checkbox]:not(.other-text)'); const otherText=div.querySelector(".other-text");
 
-    // Load autosave
-    textarea.value=localStorage.getItem(`lesson_${topicName}_${event.id}`)||"";
-    const savedMedia=JSON.parse(localStorage.getItem(`lesson_${topicName}_media_${event.id}`))||[];
+    textarea.value=localStorage.getItem(`lesson_${selectedTopic.name}_${event.id}`)||"";
+    const savedMedia=JSON.parse(localStorage.getItem(`lesson_${selectedTopic.name}_media_${event.id}`))||[];
     checkboxes.forEach((cb,i)=> cb.checked=savedMedia.includes(i));
-    if(savedMedia.some(m=>typeof m==="string")) otherText.value=savedMedia.find(m=>typeof m==="string");
+    if(savedMedia.some(m=>typeof m==="string")) { otherText.value=savedMedia.find(m=>typeof m==="string"); }
 
-    // Autosave
-    textarea.addEventListener("input",()=>{ localStorage.setItem(`lesson_${topicName}_${event.id}`,textarea.value); });
+    textarea.addEventListener("input",()=>{ localStorage.setItem(`lesson_${selectedTopic.name}_${event.id}`,textarea.value); });
     checkboxes.forEach((cb,i)=> cb.addEventListener("change",()=>{ saveMedia(event.id); }));
     otherText.addEventListener("input",()=>{ saveMedia(event.id); });
+
     function saveMedia(eventId){
-      let selected=Array.from(checkboxes).map((cb,i)=> cb.checked?i:null).filter(x=>x!==null);
+      let selected=Array.from(checkboxes).map((cb,i)=>cb.checked?mediaOptions[i]:null).filter(x=>x!==null);
       if(otherText.value.trim()!=="") selected.push(otherText.value.trim());
-      localStorage.setItem(`lesson_${topicName}_media_${eventId}`,JSON.stringify(selected));
+      localStorage.setItem(`lesson_${selectedTopic.name}_media_${eventId}`,JSON.stringify(selected));
     }
 
-    // Suggestions click
-    div.querySelectorAll(".suggestions li").forEach(li=>{
-      li.addEventListener("click",()=>{
-        textarea.value=li.textContent;
-        localStorage.setItem(`lesson_${topicName}_${event.id}`,textarea.value);
-      });
-    });
+    div.querySelectorAll(".suggestions li").forEach(li=>{ li.addEventListener("click",()=>{ textarea.value=li.textContent; localStorage.setItem(`lesson_${selectedTopic.name}_${event.id}`,textarea.value); }); });
   });
 
-  // Make sortable
   Sortable.create(container,{handle:".drag-handle", animation:150});
 
-  // Export PDF button
-  const exportBtn=document.createElement("button");
-  exportBtn.className="button";
-  exportBtn.textContent="🖨️ Export to PDF";
-  exportBtn.style.position="relative";
-  exportBtn.style.zIndex="2";
+  const exportBtn=document.createElement("button"); exportBtn.className="button"; exportBtn.textContent="🖨️ Export to PDF";
   exportBtn.addEventListener("click",()=>{
-    const { jsPDF }=window.jspdf;
-    const doc=new jsPDF();
-    doc.setFontSize(16);
-    doc.text(`Lesson Planner: ${topicName}`,10,10);
+    const { jsPDF }=window.jspdf; const doc=new jsPDF(); doc.setFontSize(16); doc.text(`Lesson Planner: ${selectedTopic.name}`,10,10);
     const rows=Array.from(container.querySelectorAll(".lesson-event")).map(div=>{
-      const title=div.dataset.title;
-      const textarea=div.querySelector("textarea").value;
-      const mediaInputs=div.querySelectorAll('input[type=checkbox]:not(.other-text)');
-      const otherText=div.querySelector(".other-text").value;
+      const title=div.dataset.title; const textarea=div.querySelector("textarea").value;
+      const mediaInputs=div.querySelectorAll('input[type=checkbox]:not(.other-text)'); const otherText=div.querySelector(".other-text").value;
       const mediaArr=Array.from(mediaInputs).map((cb,i)=>cb.checked?mediaOptions[i]:"").filter(x=>x!=="");
       if(otherText.trim()!=="") mediaArr.push(otherText.trim());
       return [title, mediaArr.join(", "), textarea];
     });
     doc.autoTable({startY:20, head:[["Event","Media","Prescription"]], body:rows, styles:{fontSize:10,cellPadding:3}, headStyles:{fillColor:[100,149,237],textColor:255}, theme:'grid', columnStyles:{0:{cellWidth:50},1:{cellWidth:50},2:{cellWidth:90}}});
-    doc.save(`${topicName}_LessonPlanner.pdf`);
+    doc.save(`${selectedTopic.name}_LessonPlanner.pdf`);
   });
   container.appendChild(exportBtn);
 }
 </script>
+</div>
 </body>
 </html>
