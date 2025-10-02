@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lesson Planner - Version 2.3</title>
+<title>Lesson Planner - Version 3.1</title>
 <style>
 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f3f4f6; margin:0; padding:20px; color:#1f2937; }
 .container { max-width:1100px; margin:auto; background:white; padding:20px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1);}
@@ -25,16 +25,17 @@ input[type=text] { border-radius:6px; border:1px solid #d1d5db; padding:6px; wid
 .media-label { display:flex; align-items:center; gap:4px; background:#f3f4f6; padding:4px 8px; border-radius:6px; font-size:13px; }
 #return-btn { margin-bottom:16px; }
 #lesson-planner { padding:10px; border-radius:12px; position:relative; }
-#lesson-planner::before { content:''; position:absolute; inset:0; background-size:cover; background-position:center; opacity:0.08; border-radius:12px; z-index:0; }
-.lesson-event textarea, .lesson-event input { position:relative; z-index:1; }
 h2.lesson-title { color:white; text-shadow: 1px 1px 4px rgba(0,0,0,0.7); }
 @media (max-width:600px){ .event-controls{flex-direction:column;} }
 </style>
 </head>
 <body>
 <div class="container">
-<h1>📚 Lesson Planner - Version 2.3</h1>
+<h1>📚 Lesson Planner - Version 3.1</h1>
+
 <button id="surprise-btn" class="button">🎲 Surprise Me!</button>
+<a href="index.html" class="button" style="margin-bottom:12px;">🏠 Home</a>
+
 <button id="return-btn" class="button" style="display:none;">🏠 Return to Main Page</button>
 <div id="topic-selector"></div>
 <div id="lesson-planner" style="display:none;"></div>
@@ -52,11 +53,10 @@ const topics=[
 {name:"Do-It-Yourself", subject:"Custom", objectives:["Enter your lesson objectives here..."], content:{customContent:["Enter key content here..."]}, suggestions:{1:["Add creative element","Group work","Link real-life"],2:["Add creative element","Group work","Link real-life"],3:["Add creative element","Group work","Link real-life"],4:["Add creative element","Group work","Link real-life"],5:["Add creative element","Group work","Link real-life"],6:["Add creative element","Group work","Link real-life"],7:["Add creative element","Group work","Link real-life"],8:["Add creative element","Group work","Link real-life"],9:["Add creative element","Group work","Link real-life"]}, image:"blocks.jpg"}
 ];
 
-// --------------------- Gagné Events ---------------------
 const nineEvents=[{id:1,title:"Gaining Attention"},{id:2,title:"Informing Learners of Objectives"},{id:3,title:"Stimulating Recall"},{id:4,title:"Presenting Content"},{id:5,title:"Providing Learning Guidance"},{id:6,title:"Eliciting Performance"},{id:7,title:"Providing Feedback"},{id:8,title:"Assessing Performance"},{id:9,title:"Enhancing Retention"}];
 
 let selectedTopic=null;
-const mediaOptions=["🎥 Video","🖼️ Pictures","📊 Charts","🧸 Physical Objects","📱 Interactive Whiteboard","📝 Worksheets","🎵 Songs/Audio","🎭 Role Play/Drama"];
+const mediaOptions=["Video","Pictures","Charts","Physical Objects","Interactive Whiteboard","Worksheets","Songs/Audio","Role Play/Drama"];
 
 // --------------------- Render Topics ---------------------
 function renderTopics(){
@@ -103,11 +103,13 @@ function showPlanner(){
       <textarea placeholder="How will you implement this event?"></textarea></div>`;
     container.appendChild(div);
 
-    const textarea=div.querySelector("textarea"); const checkboxes=div.querySelectorAll('input[type=checkbox]:not(.other-text)'); const otherText=div.querySelector(".other-text");
+    const textarea=div.querySelector("textarea"); 
+    const checkboxes=div.querySelectorAll('input[type=checkbox]:not(.other-text)'); 
+    const otherText=div.querySelector(".other-text");
 
     textarea.value=localStorage.getItem(`lesson_${selectedTopic.name}_${event.id}`)||"";
     const savedMedia=JSON.parse(localStorage.getItem(`lesson_${selectedTopic.name}_media_${event.id}`))||[];
-    checkboxes.forEach((cb,i)=> cb.checked=savedMedia.includes(i));
+    checkboxes.forEach((cb,i)=> cb.checked=savedMedia.includes(mediaOptions[i]));
     if(savedMedia.some(m=>typeof m==="string")) { otherText.value=savedMedia.find(m=>typeof m==="string"); }
 
     textarea.addEventListener("input",()=>{ localStorage.setItem(`lesson_${selectedTopic.name}_${event.id}`,textarea.value); });
@@ -125,19 +127,45 @@ function showPlanner(){
 
   Sortable.create(container,{handle:".drag-handle", animation:150});
 
-  const exportBtn=document.createElement("button"); exportBtn.className="button"; exportBtn.textContent="🖨️ Export to PDF";
+  // ----- Fixed PDF Export -----
+  const exportBtn=document.createElement("button"); 
+  exportBtn.className="button"; 
+  exportBtn.textContent="Export to PDF";
+
   exportBtn.addEventListener("click",()=>{
-    const { jsPDF }=window.jspdf; const doc=new jsPDF(); doc.setFontSize(16); doc.text(`Lesson Planner: ${selectedTopic.name}`,10,10);
-    const rows=Array.from(container.querySelectorAll(".lesson-event")).map(div=>{
-      const title=div.dataset.title; const textarea=div.querySelector("textarea").value;
-      const mediaInputs=div.querySelectorAll('input[type=checkbox]:not(.other-text)'); const otherText=div.querySelector(".other-text").value;
-      const mediaArr=Array.from(mediaInputs).map((cb,i)=>cb.checked?mediaOptions[i]:"").filter(x=>x!=="");
-      if(otherText.trim()!=="") mediaArr.push(otherText.trim());
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const cleanTopicName = selectedTopic.name.replace(/[^\x00-\x7F]/g,"");
+    doc.setFontSize(16); 
+    doc.text(`Lesson Planner: ${cleanTopicName}`, 10, 10);
+
+    const rows = Array.from(container.querySelectorAll(".lesson-event")).map(div=>{
+      const title = div.dataset.title.replace(/[^\x00-\x7F]/g,""); 
+      const textarea = div.querySelector("textarea").value.replace(/[^\x00-\x7F]/g,""); 
+
+      const mediaArr = Array.from(div.querySelectorAll('input[type=checkbox]:not(.other-text)'))
+        .filter(cb=>cb.checked)
+        .map(cb=> cb.parentElement.textContent.replace(/[^\x00-\x7F]/g,"").trim());
+
+      const otherText = div.querySelector(".other-text").value.replace(/[^\x00-\x7F]/g,"").trim();
+      if(otherText !== "") mediaArr.push(otherText);
+
       return [title, mediaArr.join(", "), textarea];
     });
-    doc.autoTable({startY:20, head:[["Event","Media","Prescription"]], body:rows, styles:{fontSize:10,cellPadding:3}, headStyles:{fillColor:[100,149,237],textColor:255}, theme:'grid', columnStyles:{0:{cellWidth:50},1:{cellWidth:50},2:{cellWidth:90}}});
-    doc.save(`${selectedTopic.name}_LessonPlanner.pdf`);
+
+    doc.autoTable({
+      startY: 20,
+      head: [["Event", "Media", "Prescription"]],
+      body: rows,
+      styles: { fontSize: 10, cellPadding: 3 },
+      headStyles: { fillColor: [100,149,237], textColor: 255 },
+      theme: 'grid',
+      columnStyles: {0:{cellWidth:50},1:{cellWidth:50},2:{cellWidth:90}}
+    });
+
+    doc.save(`${cleanTopicName}_LessonPlanner.pdf`);
   });
+
   container.appendChild(exportBtn);
 }
 </script>
